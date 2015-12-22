@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+svg{
+    position:fixed;
+    width:100%;
+    height:100%;
+    overflow-x:auto;
+    overflow-y:auto;
+}
+.node {
+    fill: #ccc;
+    stroke: #fff;
+    stroke-width: 2px;
+}
+
+.link {
+    stroke: #777;
+    stroke-width: 2px;
+}
+</style>
+<meta charset="utf-8">
+<!--
+<script src="plot.js"></script>
+-->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+<script src='http://d3js.org/d3.v3.min.js'></script>
+<script src='ANN.js'></script>
+ 
+<script>
+
+var svg = null;
+var networkState = null
+
+
+var simpleinput = [
+    [[0.35, 0.9], [0.5]]
+]
+//OR
+var ords = [
+    [[1, 0], [1]],
+    [[0, 1], [1]],
+    [[1, 1], [1]],
+    [[0, 0], [0]],
+];
+//AND
+var andds = [
+    [[1, 0], [0]],
+    [[0, 1], [0]],
+    [[1, 1], [1]],
+    [[0, 0], [0]],
+];
+//XOR
+var xords = [
+    [[1, 0], [1]],
+    [[0, 1], [1]],
+    [[1, 1], [0]],
+    [[0, 0], [0]],
+];
+
+
+var dataset = xords;
+var testset = [
+    [0, 1],
+    [1, 1],
+    [1, 0],
+    [0, 0]
+];
+
+function generateValues() { 
+
+    var posx = [];
+    var posy = [];
+    var negx = [];
+    var negy = [];
+    
+    for(var c=0;c<5000;c++) {
+        var rx = Math.random();
+        var ry = Math.random();
+        /*
+        if(rx >= 0.5)rx = 1;
+        if(rx < 0.5) rx = 0;
+        if(ry >= 0.5)ry = 1;
+        if(ry < 0.5) ry = 0;
+        */
+        var rz = predict([rx,ry])[0];
+        if(rz > 0.5) {
+            posx.push(rx);
+            posy.push(ry);
+        } else {
+            negx.push(rx);
+            negy.push(ry);
+        }
+    }
+    
+    var positive = {
+      x: posx,
+      y: posy,
+      mode: 'markers',
+      type: 'scatter'
+    };
+    
+    var negative = {
+      x: negx,
+      y: negy,
+      mode: 'markers',
+      type: 'scatter'
+    };
+    
+    var data = [ positive, negative ];
+    var layout = {
+        title :'Line and Scatter Plot'
+    };
+    Plotly.newPlot('y', data, layout);
+}
+
+function onNetworkUpdate(event, params) {
+    //console.log(event, params);
+        //console.log(params);
+    
+    if(params.network) {
+        networkState = params.network;
+    }
+    
+    if(event == 'network_ready') {  
+        doTopolgy();
+        return;
+    }
+    
+    if(event == 'simulation_paused'){
+        console.log('Enable controls');
+    }
+    
+    if(event == 'example_done') {
+        //console.log('Example done');
+        var err = networkState[2][0].target - networkState[2][0].output;
+        console.log(Math.abs(err));
+    }
+    
+    if(event == 'training_done') {
+        NeuralNetwork.predict([1, 0]);
+        NeuralNetwork.stepByFull();
+        NeuralNetwork.predict([0, 1]);
+        NeuralNetwork.stepByFull();
+        NeuralNetwork.predict([1, 1]);
+        NeuralNetwork.stepByFull();
+        NeuralNetwork.predict([0, 0]);
+        NeuralNetwork.stepByFull();
+    }
+    
+    if(event == 'prediction_done') {
+        console.log('Result ', params.output);
+        return;
+    }
+    
+    if(event == 'node_bp_done') {
+        var updateNode = networkState[params.currentLayerId][params.currentNode];
+        for(var i=0;i<updateNode.inConn.length;i++) {
+            var conn = updateNode.inConn[i];
+            var l = svg.select('#labelpath_' + conn.id).text(conn.weight.toFixed(5));
+        }
+
+    }
+}
+
+var NeuralNetwork = null;
+document.addEventListener("DOMContentLoaded", function(event) { 
+    
+    NeuralNetwork = new ANN({
+        trainingDataset : xords,//simpleinput,
+        onUpdate : onNetworkUpdate
+    });
+    
+//    initialize();
+  //  doTopolgy();
+//  var rz = predict([0,0])[0];
+//  console.log(rz);
+//  generateValues();
+});
+
+
+function doTopolgy(){
+
+var layers = networkState;
+var width = $(window).width();
+var height = $(window).height();
+var nodeSpacingX = 190;
+var nodeSpacingY = 50;
+var nodeWidth   = 20;
+var nodeHeight  = 20;
+var nodes = [];
+var links = [];
+
+for(var i=0;i<layers.length;i++) {
+
+    var nodeCount  = layers[i].length;
+    var layerWidth = nodeCount * nodeWidth + (nodeCount - 1) * nodeSpacingX;
+    var layerHeight= nodeHeight + (nodeSpacingY * 2);
+    var layerX = (width/2) - (layerWidth/2);
+    var layerY = height - (layerHeight * i) - layerHeight;
+
+    for(var j=0; j<layers[i].length;j++) {
+        nodes.push({
+            x : layerX + (j * nodeWidth),
+            y : layerY,
+            fixed_x : layerX + (j * nodeWidth) + (j * nodeSpacingX) ,
+            fixed_y : layerY            
+        });
+        for(var k=0; k<layers[i][j].outConn.length; k++) {
+            links.push({
+                layerIdx  : i,
+                nodeIdx   : j,
+                connIdx   : k,
+                id        : layers[i][j].outConn[k].id,
+                source    : layers[i][j].index,
+                target    : layers[i][j].outConn[k].to.index
+            });
+        }
+    }
+}
+
+// The `links` array contains objects with a `source` and a `target`
+// property. The values of those properties are the indices in
+// the `nodes` array of the two endpoints of the link.
+
+
+// Here's were the code begins. We start off by creating an SVG
+// container to hold the visualization. We only need to specify
+// the dimensions for this container.
+
+svg = d3.select('body').append('svg')
+    .attr('width', width)
+    .attr('height', height);
+
+// Now we create a force layout object and define its properties.
+// Those include the dimensions of the visualization and the arrays
+// of nodes and links.
+
+var force = d3.layout.force()
+    .size([width, height])
+    .nodes(nodes)
+    .links(links);
+
+// There's one more property of the layout we need to define,
+// its `linkDistance`. That's generally a configurable value and,
+// for a first example, we'd normally leave it at its default.
+// Unfortunately, the default value results in a visualization
+// that's not especially clear. This parameter defines the
+// distance (normally in pixels) that we'd like to have between
+// nodes that are connected. (It is, thus, the length we'd
+// like our links to have.)
+
+//force.charge(0);
+//force.friction(0);
+   // force.gravity(0);
+//force.linkDistance(height/6);
+//force.linkStrength(0.1);
+    
+// Next we'll add the nodes and links to the visualization.
+// Note that we're just sticking them into the SVG container
+// at this point. We start with the links. The order here is
+// important because we want the nodes to appear "on top of"
+// the links. SVG doesn't really have a convenient equivalent
+// to HTML's `z-index`; instead it relies on the order of the
+// elements in the markup. By adding the nodes _after_ the
+// links we ensure that nodes appear on top of links.
+
+// Links are pretty simple. They're just SVG lines, and
+// we're not even going to specify their coordinates. (We'll
+// let the force layout take care of that.) Without any
+// coordinates, the lines won't even be visible, but the
+// markup will be sitting inside the SVG container ready
+// and waiting for the force layout.
+
+var link = svg.selectAll('.link')
+    .data(links)
+    .enter()
+    .append('line')
+    .attr('class', 'link');
+
+
+
+var node = svg.selectAll('.node')
+    .data(nodes)
+    .enter().append('circle')
+    .attr('class', 'node');
+
+  var edgepaths = svg.selectAll(".path")
+        .data(links)
+        .enter()
+        .append('path')
+        .attr({'class':'path',
+               'fill-opacity':0,
+               'stroke-opacity':0,
+               'fill':'blue',
+               'stroke':'red',
+               'id':function(d, i){return 'path_' + d.id},
+           })
+        .style("pointer-events", "none");
+
+    var edgelabels = svg.selectAll(".label")
+        .data(links)
+        .enter()
+        .append('text')
+            .style("pointer-events", "none")
+            .attr({'class':'label',
+               'id':function(d, i){return 'label_' + d.id},
+               'dx':nodeHeight,
+               'dy':-5,
+               'font-size':14,
+               'fill':'#a00'})
+        .append('textPath')
+            .attr({
+                'xlink:href': function(d,i) {return '#path_'+d.id},
+               'id':function(d, i){return 'labelpath_' + d.id},
+            })
+            .style("pointer-events", "none")
+            .text(function(d,i){return networkState[d.layerIdx][d.nodeIdx].outConn[d.connIdx].weight.toFixed(3)});
+
+// We're about to tell the force layout to start its
+// calculations. We do, however, want to know when those
+// calculations are complete, so before we kick things off
+// we'll define a function that we want the layout to call
+// once the calculations are done.
+
+force.on('end', function() {
+    // When this function executes, the force layout
+    // calculations have concluded. The layout will
+    // have set various properties in our nodes and
+    // links objects that we can use to position them
+    // within the SVG container.
+
+    // First let's reposition the nodes. As the force
+    // layout runs it updates the `x` and `y` properties
+    // that define where the node should be centered.
+    // To move the node, we set the appropriate SVG
+    // attributes to their new values. We also have to
+    // give the node a non-zero radius so that it's visible
+    // in the container.
+
+    node
+        .attr('r', nodeWidth)
+        .attr('cx', function(d) { return d.fixed_x; })
+        .attr('cy', function(d) { return d.fixed_y; });
+    // We also need to update positions of the links.
+    // For those elements, the force layout sets the
+    // `source` and `target` properties, specifying
+    // `x` and `y` values in each case.
+
+    link
+        .attr('x1', function(d) { return d.source.fixed_x; })
+        .attr('y1', function(d) { return d.source.fixed_y; })
+        .attr('x2', function(d) { return d.target.fixed_x; })
+        .attr('y2', function(d) { return d.target.fixed_y; });
+
+    edgepaths
+        .attr('d', function(d) {return 'M '+d.source.fixed_x+' '+d.source.fixed_y+' L '+ d.target.fixed_x +' '+d.target.fixed_y});
+
+    console.log('Ready!');
+    NeuralNetwork.stepByFull();
+
+});
+
+force.on('tick', function() {
+});
+// Okay, everything is set up now so it's time to turn
+// things over to the force layout. Here we go.
+
+force.start();
+
+// By the time you've read this far in the code, the force
+// layout has undoubtedly finished its work. Unless something
+// went horribly wrong, you should see two light grey circles
+// connected by a single dark grey line. If you have a screen
+// ruler (such as [xScope](http://xscopeapp.com) handy, measure
+// the distance between the centers of the two circles. It
+// should be somewhere close to the `linkDistance` parameter we
+// set way up in the beginning (480 pixels). That, in the most
+// basic of all nutshells, is what a force layout does. We
+// tell it how far apart we want connected nodes to be, and
+// the layout keeps moving the nodes around until they get
+// reasonably close to that value.
+
+// Of course, there's quite a bit more than that going on
+// under the hood. We'll take a closer look starting with
+// the next example.
+}
+
+
+</script>
+<body>
+
+<!--<div id="y" style="width:100%;height:100%"></div>-->
+</body>
+</html>
