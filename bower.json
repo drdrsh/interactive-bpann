@@ -1,0 +1,28 @@
+{
+  "name": "interactive-bpann",
+  "homepage": "https://github.com/drdrsh/interactive-bpann",
+  "authors": [
+    "drdrsh <mostafa.mohmmed@gmail.com>"
+  ],
+  "description": "A web-based, Interactive, step-by-step Back-propagate Artificial neural network simulator",
+  "main": "",
+  "moduleType": [],
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "resolutions": {
+    "jquery": "~2.1.4"
+  },
+  "dependencies": {
+    "jquery": "~2.1.4",
+    "jquery-ui": "~1.11.4",
+    "w2ui": "~1.4.3",
+    "sigma": "~1.0.3"
+  }
+}

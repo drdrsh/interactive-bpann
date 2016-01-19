@@ -1,3 +1,6 @@
+"use strict";
+//console.profile("MyProfile");
+
 var networkInitialized = false;
 var trainingSet = [];
 var predictSet = [];
@@ -16,19 +19,32 @@ var currentNode  = 0;
 var currentLayer = 1;
 var currentMode  = '';
 
-var maxEpoch = -1;
+var maxEpochs = -1;
 var maxExamples = -1;
 var networkStepper = null;
 
-function generateNodeName(layerId, nodeId) {
-    if(layerId == 0) {
-        return "I," + nodeId;
-    }else if(layerId == OUTPUT_LAYER_INDEX) {
-        return "O," + nodeId;
+function generateLinkName(layerIdx1, nodeIdx1, layerIdx2, nodeIdx2) {
+    return "From " + generateNodeName(layerIdx1, nodeIdx1) + 
+            "To "  + generateNodeName(layerIdx2, nodeIdx2);
+}
+
+function generateLinkId(layerIdx1, nodeIdx1, layerIdx2, nodeIdx2) {
+    return generateNodeId(layerIdx1, nodeIdx1) + "_" + generateNodeId(layerIdx2, nodeIdx2);
+}
+
+function generateNodeId(layerIdx, nodeIdx) {
+    return "L" + layerIdx + "N" + nodeIdx;
+}
+function generateNodeName(layerIdx, nodeIdx) {
+    if(layerIdx == 0) {
+        return "Input " + nodeIdx;
+    }else if(layerIdx == OUTPUT_LAYER_INDEX) {
+        return "Output " + nodeIdx;
     } else {
-        return layerId + "," + nodeId;
+        return "Hidden "  + layerIdx + "," + nodeIdx;
     }
 }
+
 function getInputs(id) {
     return trainingSet[id][0];
 }
@@ -63,15 +79,60 @@ function emitPredictionEvent(outset) {
         'network': layers
     });
 }
-function emitEvent(eventId, layerId, nodeId) {
+function emitExampleEvent(exampleId) {
     self.postMessage({
-        'event'           : eventId,
-        'currentLayerId'  : layerId,
-        'currentNode'     : nodeId,
-        'network'         : layers
+        'event'    : 'example_done',
+        'exampleId': exampleId
+    });
+}
+function emitNetworkReadyEvent() {
+    self.postMessage({
+        'event'     :'network_ready',
+        'network'   : layers
+    });
+}
+function emitPlainEvent(eventId) {
+    self.postMessage({
+        'event': eventId
+    });
+}
+function serializeNode(layerIdx, nodeIdx) {
+    var newNode = {
+        layerIdx: layerIdx,
+        nodeIdx: nodeIdx,
+        weights: {}
+    };
+    var nodeRef = layers[layerIdx][nodeIdx];
+    var cpy = ['id', 'error', 'thres', 'input', 'output'];
+    for(var i=0;i<cpy.length;i++) {
+        newNode[cpy[i]] = nodeRef[cpy[i]];
+    }
+    
+   for(var i=0;i<nodeRef.inConn.length;i++) {
+        newNode.weights[nodeRef.inConn[i].id] = nodeRef.inConn[i].weight;
+   }
+   return newNode;
+}
+
+function emitNodeEvent(eventId, layerIdx, nodeIdx) {
+    self.postMessage({
+        'event'    : eventId,
+        'layerIdx' : layerIdx,
+        'nodeIdx'  : nodeIdx,
+        'node'     : serializeNode(layerIdx, nodeIdx)
     });
 }
 
+function emitLayerEvent(eventId, layerId, nodeId) {
+}
+
+function emitEpochEvent(epochId) {
+    self.postMessage({
+        'event'         :'epoch_done',
+        'epochsElapsed' : epochId,
+        'epochsLeft'    : maxEpochs - epochId
+    });
+}
 function feedForwardNode(layerId, nodeId) {
     
     var node = layers[layerId][nodeId];
@@ -163,15 +224,15 @@ function* predict() {
     for(currentLayer=1;currentLayer<layers.length;currentLayer++) {
         for(currentNode=0;currentNode<layers[currentLayer].length;currentNode++) {
             feedForwardNode(currentLayer, currentNode);
-            emitEvent('node_ff_done', currentLayer, currentNode);
+            emitNodeEvent('node_ff_done', currentLayer, currentNode);
             if(currentMode == 'node') {
-                emitEvent('simultaion_paused');
+                emitEvent('simulation_paused');
                 yield 1;
             }
         }
-        emitEvent('layer_ff_done', currentLayer, currentNode);
+        emitLayerEvent('layer_ff_done', currentLayer);
         if(currentMode == 'layer') {
-            emitEvent('simultaion_paused');
+            emitEvent('simulation_paused');
             yield 2;
         }
     }
@@ -201,15 +262,15 @@ function* train() {
                         allOutputsCorrect = allOutputsCorrect && layers[currentLayer][currentNode].hitTarget;
                         //console.log(allTargetsHit);
                     }
-                    emitEvent('node_ff_done', currentLayer, currentNode);
+                    emitNodeEvent('node_ff_done', currentLayer, currentNode);
                     if(currentMode == 'node') {
-                        emitEvent('simultaion_paused');
+                        emitPlainEvent('simulation_paused');
                         yield 1;
                     }
                 }
-                emitEvent('layer_ff_done', currentLayer, currentNode);
+                emitLayerEvent('layer_ff_done', currentLayer);
                 if(currentMode == 'layer') {
-                    emitEvent('simultaion_paused');
+                    emitPlainEvent('simulation_paused');
                     yield 2;
                 }
             }
@@ -220,23 +281,23 @@ function* train() {
                 for(currentLayer=layers.length - 1;currentLayer>=1;currentLayer--) {
                     for(currentNode=layers[currentLayer].length - 1;currentNode>=0;currentNode--) {
                         backPropagateNode(currentLayer, currentNode);
-                        emitEvent('node_bp_done', currentLayer, currentNode);
+                        emitNodeEvent('node_bp_done', currentLayer, currentNode);
                         if(currentMode == 'node'){
-                            emitEvent('simultaion_paused');
+                            emitPlainEvent('simulation_paused');
                             yield 3;
                         }
                     }
-                    emitEvent('layer_bp_done', currentLayer, currentNode);
+                    emitLayerEvent('layer_bp_done', currentLayer);
                     if(currentMode == 'layer') {
-                        emitEvent('simultaion_paused');
+                        emitPlainEvent('simulation_paused');
                         yield 4;
                     }
                 }
             }
            
-            emitEvent('example_done');
+            emitExampleEvent(currentExample);
             if(currentMode == 'example') {
-                emitEvent('simultaion_paused');
+                emitPlainEvent('simulation_paused');
                 yield 5;
             }
             
@@ -244,9 +305,9 @@ function* train() {
         }
         
         
-        emitEvent('epoch_done');
+        emitEpochEvent(currentEpoch);
         if(currentMode == 'epoch') {
-            emitEvent('simultaion_paused');
+            emitPlainEvent('simulation_paused');
             yield 6;
         }
         
@@ -255,7 +316,8 @@ function* train() {
         } 
     }
     
-    emitEvent('training_done');
+    emitPlainEvent('training_done');
+    //console.profileEnd();
     return null;
 }
 
@@ -264,7 +326,7 @@ function* train() {
 
 
 function createNetwork(params) {
-    
+
     trainingSet = params.trainingDataset;
     hiddenLayerCount = params.hiddenLayerCount;
     maxEpochs = params.epochs;
@@ -284,6 +346,7 @@ function createNetwork(params) {
         layers[0].push({
             "index"  : nodeIndexCounter++,
             "lindex" : i,
+            "id"     : generateNodeId(0, i),
             "name"   : nodeName,
             "type"   : "input",
             "layerId": 0,
@@ -304,6 +367,7 @@ function createNetwork(params) {
                 "index"  : nodeIndexCounter++,
                 "lindex" : j,
                 "name"   : nodeName,
+                "id"     : generateNodeId(i + 1, j),
                 "type"   : "hidden",
                 "layerId": 1 + i,
                 "input"  : 0,
@@ -320,11 +384,12 @@ function createNetwork(params) {
     layers.push([]);
     OUTPUT_LAYER_INDEX = layers.length - 1;
     for(var i=0;i<outputNodeCount;i++) {
-        var nodeName = generateNodeName("O", i);
+        var nodeName = generateNodeName(OUTPUT_LAYER_INDEX, i);
         layers[OUTPUT_LAYER_INDEX].push({
             "index"  : nodeIndexCounter++,
             "lindex" : i,
             "name"   : nodeName,
+            "id"     : generateNodeId(OUTPUT_LAYER_INDEX, i),
             "type"   : "output",
             "layerId": OUTPUT_LAYER_INDEX,
             "input"  : 0,
@@ -344,12 +409,13 @@ function createNetwork(params) {
         for(var j=0;j<currentLayer.length;j++) {
             for(var k=0;k<nextLayer.length;k++) {
                 var conn = {
-                    "id"    : 'conn_' + i + '_' + j + '_' + (i+1) + '_' + k,
-                    "name"  : currentLayer[j].name + "," + nextLayer[k].name,
+                    "id"    : generateLinkId(i, j, i+1, k),
+                    "name"  : generateLinkName(i, j, i+1, k),
                     "from"  : currentLayer[j],
                     "to"    : nextLayer[k],
                     "weight": randomWeight()
                 }; 
+                //console.log(conn.id);
                 currentLayer[j].outConn.push(conn);
                 nextLayer[k].inConn.push(conn);
             }
@@ -361,8 +427,8 @@ function createNetwork(params) {
     
     networkStepper = train();
     
-    emitEvent('network_ready', -1, -1);
-
+    emitNetworkReadyEvent();
+    
     
 }
 

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="./assets/lib/jquery-ui/jquery-ui.css">
+    <link rel="stylesheet" type="text/css" href="./assets/lib/w2ui/w2ui.css" />
+    <link rel="stylesheet" type="text/css" href="./assets/common/css/style.css" />
+<body>
+    <div id="tabs">
+        <div id="params-tab" class="tab-body">
+            <form method="dialog">
+                <section>
+                    <p>
+                        <label for="number-of-epochs">Number of Epochs:</label>
+                        <input type="number" min="1" max="20000" step="10" value="15000" id="number-of-epochs" />
+                    </p>
+                    <p>
+                        <label for="learning-rate">Learning Rate:</label>
+                        <input type="number" min="0.01" max="5" step="0.01" value="0.1" id="learning-rate" />
+                    </p>
+                    <p>
+                        <label for="tolerance">Tolerance:</label>
+                        <input type="number" min="0.01" max="0.5" step="0.01" value="0.1" id="tolerance" />
+                    </p>
+                    <p>
+                        <label for="number-of-layers">Number of hidden Layers:</label>
+                        <input type="number" min="1" max="5" step="1" value="1" id="number-of-layers" />
+                    </p>
+                    <p id="number-of-nodes-container">
+                        <label>Number of Nodes per layer:</label>
+                    </p>
+                    
+                    <button class="build">Build</button>
+                </section>
+            </form>
+        </div>
+
+        <div id="data-tab" class="tab-body">
+            <div id="grid"></div>
+        </div>
+        
+        
+        <ul>
+            <li><a href="#params-tab" id="params-tab-a">Network Parameters</a></li>
+            <li><a href="#data-tab" id="data-tab-a">Data</a></li>
+        </ul>
+    </div>
+    
+    <script language="text/html" id="example_meter">
+        <li id="example-state-<%=exampleId%>">
+            <progress value="0" max="100"></progress>
+        </li>
+    </script>
+
+
+    <div id="graph"></div>
+    <div id="controls">
+        <button class="step" data-mode="node">Step by Node</button>
+        <button class="step" data-mode="layer">Step by Layer</button>
+        <button class="step" data-mode="example">Step by Example</button>
+        <button class="step" data-mode="epoch">Step by Epoch</button>
+        <button class="step" data-mode="full">Full run</button>
+    </div>
+    <div id="examples">
+        <h4>Learning Progress<br>per example</h4>
+        <ol></ol>
+    </div>
+    <div id="logger">
+    <textarea></textarea>
+    </div>
+
+    <script src="./assets/lib/jquery/jquery.js"></script>
+    <script src="./assets/lib/jquery-ui/jquery-ui.js"></script>
+    <script src="./assets/lib/w2ui/w2ui.js"></script>
+    <script src="./assets/lib/sigma/sigma.js"></script>
+    <script>var appNS = {};</script>
+    <script src='./assets/common/js/template.js'></script>
+    <script src='./assets/common/js/main.js'></script>
+    <script src='./assets/common/js/ANN.js'></script>
+</body>
+</html>
