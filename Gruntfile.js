@@ -2,6 +2,14 @@ module.exports = function(grunt) {
 
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
+		serve: {
+			options: {
+				port: 9000,
+				serve: {
+					path: './source/'
+				}
+			}
+		},
         concat: {
             
             "jquery-ui": {
@@ -149,6 +157,7 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-concat');
     grunt.loadNpmTasks('grunt-html-build');
     grunt.loadNpmTasks('grunt-bowercopy');
+	grunt.loadNpmTasks('grunt-serve');
     
     // task setup 
     grunt.registerTask('default', ['concat', 'jshint', 'bowercopy', 'htmlbuild', 'uglify']);

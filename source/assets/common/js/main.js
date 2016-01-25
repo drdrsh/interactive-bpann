@@ -458,6 +458,20 @@
         }
         */
         
+		if(event == 'node_ff_done') {
+
+			var updateNode = networkState[params.node.layerIdx][params.node.nodeIdx];
+            if(isStepByStep) {
+                logQueue.push('Error at ' + updateNode.name + ' = ' + updateNode.error.toFixed(4));
+            }
+            
+            var nodes = appNS.graph.graph.nodes();
+            for(var i=0;i<nodes.length;i++) {
+                nodes[i].color = '#000';
+            }
+            appNS.graph.graph.nodes(updateNode.id).color = '#0f0';
+		}
+		
         if(event == 'node_bp_done') {
             updateNetworkState(params.node);
 
@@ -638,10 +652,10 @@
 
         var width = 1;
         var height = 1;
-        var nodeSpacingX = 0.5;
-        var nodeSpacingY = 0.1;
-        var nodeWidth   = 0.05;
-        var nodeHeight  = 0.05;
+        var nodeSpacingX = 0.1;
+        var nodeSpacingY = 0.05;
+        var nodeWidth   = 0.2;
+        var nodeHeight  = 0.2;
         var nodes = [];
         var links = [];
         var bgs = [];
@@ -649,11 +663,11 @@
 
         for(var i=0;i<layers.length;i++) {
 
-            var nodeCount  = layers[i].length;
-            var layerWidth = (nodeCount * nodeWidth) + ( (nodeCount - 1) * nodeSpacingX);
-            var layerHeight=  nodeHeight + (nodeSpacingY * 2);
-            var layerX = (width/2) - (layerWidth/2);
-            var layerY = height - (layerHeight * i) - layerHeight;
+            var nodeCount   = layers[i].length;
+            var layerHeight = (nodeCount * nodeHeight) + ( (nodeCount - 1) * nodeSpacingY);
+            var layerWidth  =  nodeWidth + (nodeSpacingX * 2);
+            var layerX = width + (layerWidth * i) + layerWidth
+            var layerY = (height/2) - (layerHeight/2);
             for(var j=0; j<layers[i].length;j++) {
                 var node = layers[i][j];
                 var type = 'hidden';
@@ -665,14 +679,14 @@
                 }
 
                 g.nodes.push({
-                    x       : layerX + (j * nodeWidth) + ( (j-1) * nodeSpacingX),
-                    y       : layerY,
+                    x       : layerX,
+                    y       : layerY + (j * nodeHeight) + ( (j-1) * nodeSpacingY),
                     type    : type,
                     layerIdx: i,
                     nodeIdx : j,
                     id : node.id,
                     label: node.name,
-                    size:  nodeWidth,
+                    size:  nodeWidth * 500,
                     color: '#666'
                 });
                 
@@ -700,6 +714,7 @@
             graph: g,
             renderer: {
                 container: document.getElementById('graph'),
+				minArrowSize: 5,
                 type: 'canvas'
             },
             settings: {
