@@ -10,7 +10,6 @@
     var isTrainingComplete = false;
     
     var networkState = null
-    var logQueue = [];
 
     
     //XOR
@@ -209,158 +208,7 @@
         
     }
 
-    /*
-    function prepareDatagrid(data) {
-        
-        var fields = [];
-        for(var idx in data[0]) {
-            var fieldName = "field_" + idx;
-            if(idx == data[0].length - 1) {
-                //Last field?
-                fieldName = "output";
-            }
-            fields.push({
-                "name": fieldName,
-                "type": number,
-                "width": 50
-            });
-        }
-        fields.push({
-            type: "control",
-            modeSwitchButton: false,
-            editButton: false,
-            headerTemplate: function() {
-                return $("<button>").attr("type", "button").text("Add")
-                        .on("click", function () {
-                            showDetailsDialog("Add", {});
-                        });
-            }
-        });
-
-        
-        $("#jsGrid").jsGrid({
-            height: "70%",
-            width: "100%",
-            editing: true,
-            autoload: true,
-            paging: true,
-            deleteConfirm: function(item) {
-                return "The client \"" + item.Name + "\" will be removed. Are you sure?";
-            },
-            rowClick: function(args) {
-                showDetailsDialog("Edit", args.item);
-            },
-            controller: db,
-            fields: fields
-        });
-     
-        $("#detailsDialog").dialog({
-            autoOpen: false,
-            width: 400,
-            close: function() {
-                $("#detailsForm").validate().resetForm();
-                $("#detailsForm").find(".error").removeClass("error");
-            }
-        });
-     
-        $("#detailsForm").validate({
-            rules: {
-                name: "required",
-                age: { required: true, range: [18, 150] },
-                address: { required: true, minlength: 10 },
-                country: "required"
-            },
-            messages: {
-                name: "Please enter name",
-                age: "Please enter valid age",
-                address: "Please enter address (more than 10 chars)",
-                country: "Please select country"
-            },
-            submitHandler: function() {
-                formSubmitHandler();
-            }
-        });
-     
-        var formSubmitHandler = $.noop;
-     
-        var showDetailsDialog = function(dialogType, client) {
-            $("#name").val(client.Name);
-            $("#age").val(client.Age);
-            $("#address").val(client.Address);
-            $("#country").val(client.Country);
-            $("#married").prop("checked", client.Married);
-     
-            formSubmitHandler = function() {
-                saveClient(client, dialogType === "Add");
-            };
-     
-            $("#detailsDialog").dialog("option", "title", dialogType + " Client")
-                    .dialog("open");
-        };
-     
-        var saveClient = function(client, isNew) {
-            $.extend(client, {
-                Name: $("#name").val(),
-                Age: parseInt($("#age").val(), 10),
-                Address: $("#address").val(),
-                Country: parseInt($("#country").val(), 10),
-                Married: $("#married").is(":checked")
-            });
-     
-            $("#jsGrid").jsGrid(isNew ? "insertItem" : "updateItem", client);
-     
-            $("#detailsDialog").dialog("close");
-        };
-     
-    }
-    */
-
-    function generateValues() { 
-
-        var posx = [];
-        var posy = [];
-        var negx = [];
-        var negy = [];
-        
-        for(var c=0;c<5000;c++) {
-            var rx = Math.random();
-            var ry = Math.random();
-            /*
-            if(rx >= 0.5)rx = 1;
-            if(rx < 0.5) rx = 0;
-            if(ry >= 0.5)ry = 1;
-            if(ry < 0.5) ry = 0;
-            */
-            var rz = predict([rx,ry])[0];
-            if(rz > 0.5) {
-                posx.push(rx);
-                posy.push(ry);
-            } else {
-                negx.push(rx);
-                negy.push(ry);
-            }
-        }
-        
-        var positive = {
-          x: posx,
-          y: posy,
-          mode: 'markers',
-          type: 'scatter'
-        };
-        
-        var negative = {
-          x: negx,
-          y: negy,
-          mode: 'markers',
-          type: 'scatter'
-        };
-        
-        var data = [ positive, negative ];
-        var layout = {
-            title :'Line and Scatter Plot'
-        };
-        Plotly.newPlot('y', data, layout);
-    }
+  
 
     var exampleBaseErrors = [];
     var exampleProgress = [];
@@ -386,12 +234,14 @@
             isTrainingComplete = false;
             networkState = params.network;
             doTopolgy();
+            $('#controls').show();
+            $('.run').html('Run');
             return;
         }
         
         if(event == 'simulation_paused'){
             isBusy = false;
-            logQueue = [];
+            $('.run').removeAttr('disabled', 'disabled');
         }
         
         
@@ -421,23 +271,32 @@
                 //logQueue.push('Example ' + params.exampleId + ' processed with error ' + avgNodeError);
             }
             
-            //Update input node labels
+            //Update input node labels, and invalidate node ui states
             var inputs = appNS.examples[params.nextExampleId][0];
-            for(var i=0;i<networkState[0].length;i++) {
-                networkState[0][i].output = inputs[i];
-                var graphNode = appNS.graph.graph.nodes(networkState[0][i].id);
-                graphNode.sublabel = networkState[0][i].output.toFixed(4);
-                graphNode.color = appNS.exampleColors[params.nextExampleId];
+            for(var i=0;i<networkState.length;i++) {
+                for(var j=0;j<networkState[i].length;j++) {
+                    if(i == 0) {
+                        //Update input layer colors and values
+                        networkState[i][j].output = inputs[j];
+                        var graphNode = appNS.graph.graph.nodes(networkState[i][j].id);
+                        graphNode.sublabel = networkState[i][j].output.toFixed(4);
+                        graphNode.color = appNS.exampleColors[params.nextExampleId];
+                    } else {
+                        networkState[i][j].errorInvalid = true;
+                        networkState[i][j].outputInvalid= true;
+                    }
+                }
             }
         }
         
         if(event == 'training_done') {
             isBusy = false;
-            logQueue = [];
             var nodes = appNS.graph.graph.nodes();
             for(var i=0;i<nodes.length;i++) {
                 nodes[i].color = '#000';
             }
+            $('.run').removeAttr('disabled', 'disabled');
+            $('.run').html('Restart');
             render();
             isTrainingComplete = true;
         }
@@ -462,7 +321,8 @@
         
         if(event == 'node_ff_done') {
             var updateNode = networkState[params.node.layerIdx][params.node.nodeIdx];
-
+            updateNode.outputInvalid = false;
+            
             var nodes = appNS.graph.graph.nodes();
             for(var i=0;i<nodes.length;i++) {
                 if(nodes[i].type != 'input') {
@@ -477,6 +337,7 @@
 
             var updateNode = networkState[params.node.layerIdx][params.node.nodeIdx];
             var graphNode = appNS.graph.graph.nodes(updateNode.id);
+            updateNode.errorInvalid = false;
             
             var nodes = appNS.graph.graph.nodes();
             for(var i=0;i<nodes.length;i++) {
@@ -486,6 +347,7 @@
             }
 //            console.log(event, params);
             graphNode.color = '#f00';
+            
             graphNode.sublabel = updateNode.thres?updateNode.thres.toFixed(4):'';
 
             for(var i=0;i<updateNode.inConn.length;i++) {
@@ -551,14 +413,22 @@
 
     document.addEventListener("DOMContentLoaded", function(event) { 
 
-        $('.step').click(function() {
+        $('.run').click(function() {
+            if(isTrainingComplete) {
+                $('.build').click();
+                return;
+            }
             if(isBusy || !appNS.neuralNetwork) {
                 return;
             }
+            
             var $button = $(this);
-            var mode = $button.attr('data-mode');
+            $button.attr('disabled', 'disabled');
+            var mode = $('input[name=step-mode]:checked').val()
+            var steps= $('#number-of-steps').val();
+            $('#examples').show();
             isBusy = true;
-            appNS.neuralNetwork.stepBy(mode);
+            appNS.neuralNetwork.stepBy(mode, steps);
             render();
         });
         
@@ -618,7 +488,10 @@
                 learningRate: learningRate,
                 tolerance: tolerance,
             });
-            $( "#params-tab-a" ).click();
+            console.log( $('#params-tab:visible') );
+            if( $('#params-tab:visible') ) {
+                $( "#params-tab-a" ).click();
+            }
         });
         
         $( "#tabs" ).tabs({
@@ -774,12 +647,12 @@
             var node = networkState[e.data.node.layerIdx][e.data.node.nodeIdx];
             
             var vw = {
-                input : node.input?node.input.toFixed(4):'N/A',
-                thres : node.thres?node.thres.toFixed(4):'N/A',
-                output: node.output.toFixed(4),
-                error : node.error?node.error.toFixed(4):'N/A',
+                input  : (node.input && (!node.outputInvalid || isTrainingComplete))?node.input.toFixed(4):'N/A',
+                thres  : (node.thres)?node.thres.toFixed(4):'N/A',
+                output : (!node.outputInvalid|| isTrainingComplete)?node.output.toFixed(4):'N/A',
+                error  : (node.error && (!node.errorInvalid || isTrainingComplete))?node.error.toFixed(4):'N/A'
             }
-            console.log(e.data)
+
             var rendererId = e.data.renderer.conradId;
             
             displayTooltip(tmpl("tooltip_tmpl", vw), 

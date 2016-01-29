@@ -56,24 +56,24 @@
             this._worker.postMessage({'operation' : 'step', 'mode': 'full'});
         }
 
-        stepByEpoch(){
-            this._worker.postMessage({'operation' : 'step', 'mode': 'epoch'});
+        stepByEpoch(count){
+            this._worker.postMessage({'operation' : 'step', 'mode': 'epoch', 'count': count});
         }
         
-        stepByExample(){
-            this._worker.postMessage({'operation' : 'step', 'mode': 'example'});
+        stepByExample(count){
+            this._worker.postMessage({'operation' : 'step', 'mode': 'example', 'count': count});
         }
         
-        stepByLayer(){
-            this._worker.postMessage({'operation' : 'step', 'mode': 'layer'});
+        stepByLayer(count){
+            this._worker.postMessage({'operation' : 'step', 'mode': 'layer', 'count': count});
         }
         
-        stepByNode(){
-            this._worker.postMessage({'operation' : 'step', 'mode': 'node'});
+        stepByNode(count){
+            this._worker.postMessage({'operation' : 'step', 'mode': 'node', 'count': count});
         }
         
-        stepBy(mode) {
-            this._worker.postMessage({'operation' : 'step', 'mode': mode});
+        stepBy(mode, count) {
+            this._worker.postMessage({'operation' : 'step', 'mode': mode, 'count': count});
         }
         
         static extend (obj1, obj2) { 

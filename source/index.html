@@ -36,7 +36,16 @@
             <div id="grid"></div>
         </div>
 
-        <div id="about-tab" class="tab-body"></div>
+        <div id="about-tab" class="tab-body">
+        <h2>Interactive demo for Artificial neural networks</h2>
+        <p>
+        This is a very minimal demo that aims to serve as a visualization tool for instructors to help their students better grasp artificial neural networks. This demo allows a step-by-step iteration through a fully-connected backpropagation artificial neural network network to get some intuition as what goes on during the process of training. It uses the latest Javascript technologies, particularly the new keyword "yield" that allows clean loop pause and resume.
+        </p>
+        <p>
+         The code is available on <a href="https://github.com/drdrsh/interactive-bpann">github</a> and is released under MIT license. If you wish to contact me send me an email to mostafa.mohmmed@gmail.com.
+
+        
+        </div>
         
         
         <ul>
@@ -65,11 +74,35 @@
 
 
     <div id="controls">
-        <button class="step" data-mode="node">Step by Node</button>
-        <button class="step" data-mode="layer">Step by Layer</button>
-        <button class="step" data-mode="example">Step by Example</button>
-        <button class="step" data-mode="epoch">Step by Epoch</button>
-        <button class="step" data-mode="full">Full run</button>
+        <fieldset>
+            <legend>Stepping mode</legend>
+            <ul>
+                <li>
+                    <input checked type="radio" name="step-mode" id="step-mode-node" value="node">
+                    <label for="step-mode-node">Node</label>
+                </li>
+                <li>
+                    <input type="radio" name="step-mode" id="step-mode-layer" value="layer">
+                    <label for="step-mode-layer">Layer</label>
+                </li>
+                <li>
+                    <input type="radio" name="step-mode" id="step-mode-example" value="example">
+                    <label for="step-mode-example">Example</label>
+                </li>
+                <li>
+                    <input type="radio" name="step-mode" id="step-mode-epoch" value="epoch">
+                    <label for="step-mode-epoch">Epoch</label>
+                </li>
+                <li>
+                    <input type="radio" name="step-mode" id="step-mode-full" value="full">
+                    <label for="step-mode-full">Full</label>
+                </li>
+            </ul>
+        <label for="number-of-steps">Number of steps</label>
+        <input type="number" min="1" max="500" step="1" value="1" id="number-of-steps" />
+                        
+        <button class="run">Run</button>
+        </fieldset>
     </div>
     <div id="examples">
         <h4>Learning Progress</h4>

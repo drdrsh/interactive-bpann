@@ -19,7 +19,8 @@ var currentExample = 0;
 var currentNode  = 0;
 var currentLayer = 1;
 var currentMode  = '';
-
+var currentStep = 0;
+var maxSteps = 0;
 var maxEpochs = -1;
 var maxExamples = -1;
 var networkStepper = null;
@@ -131,6 +132,7 @@ function serializeNode(layerIdx, nodeIdx) {
 
 function emitNodeEvent(eventId, layerIdx, nodeIdx) {
     var node = serializeNode(layerIdx, nodeIdx);
+    //console.log(node.id, node.input , node.output);
     self.postMessage({
         'event'    : eventId,
         'layerIdx' : layerIdx,
@@ -279,15 +281,21 @@ function* train() {
                         //console.log(allTargetsHit);
                     }
                     emitNodeEvent('node_ff_done', currentLayer, currentNode);
-                    if(pauseFlag || currentMode == 'node') {
-                        emitPlainEvent('simulation_paused');
-                        yield 1;
+                    if(currentMode == 'node') {
+                        currentStep++;
+                        if(currentStep == maxSteps) {
+                            emitPlainEvent('simulation_paused');
+                            yield 1;
+                        }
                     }
                 }
                 emitLayerEvent('layer_ff_done', currentLayer);
-                if(pauseFlag || currentMode == 'layer') {
-                    emitPlainEvent('simulation_paused');
-                    yield 2;
+                if(currentMode == 'layer') {
+                    currentStep++;
+                    if(currentStep == maxSteps) {
+                        emitPlainEvent('simulation_paused');
+                        yield 2;
+                    }
                 }
             }
             
@@ -298,15 +306,21 @@ function* train() {
                     for(currentNode=layers[currentLayer].length - 1;currentNode>=0;currentNode--) {
                         backPropagateNode(currentLayer, currentNode);
                         emitNodeEvent('node_bp_done', currentLayer, currentNode);
-                        if(pauseFlag || currentMode == 'node'){
-                            emitPlainEvent('simulation_paused');
-                            yield 3;
+                        if(currentMode == 'node'){
+                            currentStep++;
+                            if(currentStep == maxSteps) {
+                                emitPlainEvent('simulation_paused');
+                                yield 3;
+                            }
                         }
                     }
                     emitLayerEvent('layer_bp_done', currentLayer);
-                    if(pauseFlag || currentMode == 'layer') {
-                        emitPlainEvent('simulation_paused');
-                        yield 4;
+                    if(currentMode == 'layer') {
+                        currentStep++;
+                        if(currentStep == maxSteps) {
+                            emitPlainEvent('simulation_paused');
+                            yield 4;
+                        }
                     }
                 }
             }
@@ -315,18 +329,23 @@ function* train() {
             allExamplesCorrect = allExamplesCorrect && allOutputsCorrect;
 
             emitExampleEvent(currentExample, allExamplesCorrect);
-            if(pauseFlag || currentMode == 'example') {
-                emitPlainEvent('simulation_paused');
-                yield 5;
-            }
-            
+            if(currentMode == 'example') {
+                currentStep++;
+                if(currentStep == maxSteps) {
+                    emitPlainEvent('simulation_paused');
+                    yield 5;
+                }
+            }                
         }
         
         
         emitEpochEvent(currentEpoch);
-        if(pauseFlag || currentMode == 'epoch') {
-            emitPlainEvent('simulation_paused');
-            yield 6;
+        if(currentMode == 'epoch') {
+           currentStep++;
+            if(currentStep == maxSteps) {
+                emitPlainEvent('simulation_paused');
+                yield 6;
+            }
         }
         
         if(allExamplesCorrect) {
@@ -371,6 +390,8 @@ function createNetwork(params) {
             "layerId": 0,
             "input"  : 0,
             "output" : 0,
+            "errorInvalid"  : false,
+            "outputInvalid" : false,
             "inConn" : [],
             "outConn": [],
             "firstInLayer" : (i == 0),
@@ -391,6 +412,8 @@ function createNetwork(params) {
                 "layerId": 1 + i,
                 "input"  : 0,
                 "output" : 0,
+                "errorInvalid"  : false,
+                "outputInvalid" : false,
                 "thres"  : randomWeight(),
                 "inConn" : [],
                 "outConn": [],
@@ -414,6 +437,8 @@ function createNetwork(params) {
             "input"  : 0,
             "output" : 0,
             "target" : 0,
+            "errorInvalid"  : false,
+            "outputInvalid" : false,
             "thres"  : randomWeight(),
             "inConn" : [],
             "outConn": [],
@@ -443,7 +468,13 @@ function createNetwork(params) {
     }
     
     totalNodeCount = nodeIndexCounter;
-    
+    initMarginNodes(0);
+    //Feedforward
+    for(var i=1;i<layers.length;i++) {
+        for(var j=0;j<layers[i].length;j++) {
+            feedForwardNode(i, j);
+        }
+    }
     
     networkStepper = train();
     
@@ -472,6 +503,8 @@ self.onmessage = function(event) {
     
     if(m.operation == 'step') {
         currentMode = m.mode;
+        maxSteps = m.count?m.count:1;
+        currentStep = 0;
         networkStepper.next();
         return;
     }
