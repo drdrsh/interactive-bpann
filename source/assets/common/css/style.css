@@ -4,11 +4,12 @@ body {
 
 #grid {
     float:right;
-    width:1000px;
+    width:700px;
     height: 300px;
 }
 form {
     float:left;
+    width:500px;
 }
 .tab-body { 
     height:300px;
@@ -100,3 +101,27 @@ form {
     border: 1px solid black;
 }
 
+
+#tooltip {
+	display:block;
+	position: absolute;
+	z-index: 9000;
+	border-radius:10px;
+	color:white;
+	padding: 5px;
+	opacity: 0.96;
+	margin:0;
+    max-width:600px;
+    background-color:navy;
+    color:white;
+}
+#tooltip ul, #tooltip h3, #tooltip div, #tooltip p{ margin: 0; text-align:center; }
+#tooltip ul {
+    list-style:none;
+    text-align:left;
+    padding:0;
+}
+
+td.example-color {
+    width:32px;
+}

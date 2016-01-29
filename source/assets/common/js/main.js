@@ -3,37 +3,22 @@
 
     appNS.neuralNetwork = null;
     appNS.graph = null;
+    appNS.examples = [];
+    appNS.exampleColors = [];
     
     var isBusy = false;
-    var isStepByStep = true;
     var isTrainingComplete = false;
     
     var networkState = null
     var logQueue = [];
 
-    var simpleinput = [
-        [[0.35, 0.9], [0.5]]
-    ]
-    //OR
-    var ords = [
-        [[1, 0], [1]],
-        [[0, 1], [1]],
-        [[1, 1], [1]],
-        [[0, 0], [0]],
-    ];
-    //AND
-    var andds = [
-        [[1, 0], [0]],
-        [[0, 1], [0]],
-        [[1, 1], [1]],
-        [[0, 0], [0]],
-    ];
+    
     //XOR
     var xords = [
-        [[1, 0], [1,1]],
-        [[0, 1], [1,1]],
-        [[1, 1], [0,0]],
-        [[0, 0], [0,0]],
+        [[1, 0], [1]],
+        [[0, 1], [1]],
+        [[1, 1], [0]],
+        [[0, 0], [0]],
     ];
 
 
@@ -146,7 +131,9 @@
             show: { 
                 toolbar: true,
                 footer: true,
-                toolbarSave: true
+                toolbarSave: false,
+                toolbarSearch: false,
+                toolbarColumns: false
             },
             toolbar: {
                 items: [
@@ -404,8 +391,6 @@
         
         if(event == 'simulation_paused'){
             isBusy = false;
-            $('#logger textarea').val($('#logger textarea').val() + "\n" + logQueue.join("\n"));
-            $('#logger textarea').get(0).scrollTop = $('#logger textarea').get(0).scrollHeight;
             logQueue = [];
         }
         
@@ -435,12 +420,19 @@
                 exampleError[params.exampleId] = avgNodeError;
                 //logQueue.push('Example ' + params.exampleId + ' processed with error ' + avgNodeError);
             }
+            
+            //Update input node labels
+            var inputs = appNS.examples[params.nextExampleId][0];
+            for(var i=0;i<networkState[0].length;i++) {
+                networkState[0][i].output = inputs[i];
+                var graphNode = appNS.graph.graph.nodes(networkState[0][i].id);
+                graphNode.sublabel = networkState[0][i].output.toFixed(4);
+                graphNode.color = appNS.exampleColors[params.nextExampleId];
+            }
         }
         
         if(event == 'training_done') {
             isBusy = false;
-            $('#logger textarea').val($('#logger textarea').val() + logQueue.join("\n"));
-            $('#logger textarea').get(0).scrollTop = $('#logger textarea').get(0).scrollHeight;
             logQueue = [];
             var nodes = appNS.graph.graph.nodes();
             for(var i=0;i<nodes.length;i++) {
@@ -470,13 +462,12 @@
         
         if(event == 'node_ff_done') {
             var updateNode = networkState[params.node.layerIdx][params.node.nodeIdx];
-            if(isStepByStep) {
-                logQueue.push('Error at ' + updateNode.name + ' = ' + updateNode.error.toFixed(4));
-            }
 
             var nodes = appNS.graph.graph.nodes();
             for(var i=0;i<nodes.length;i++) {
-                nodes[i].color = '#000';
+                if(nodes[i].type != 'input') {
+                    nodes[i].color = '#000';
+                }
             }
             appNS.graph.graph.nodes(updateNode.id).color = '#0f0';
         }
@@ -485,23 +476,23 @@
             updateNetworkState(params.node);
 
             var updateNode = networkState[params.node.layerIdx][params.node.nodeIdx];
-            if(isStepByStep) {
-                logQueue.push('Error at ' + updateNode.name + ' = ' + updateNode.error.toFixed(4));
-            }
+            var graphNode = appNS.graph.graph.nodes(updateNode.id);
             
             var nodes = appNS.graph.graph.nodes();
             for(var i=0;i<nodes.length;i++) {
-                nodes[i].color = '#000';
+                if(nodes[i].type != 'input') {
+                    nodes[i].color = '#000';
+                }
             }
-            appNS.graph.graph.nodes(updateNode.id).color = '#f00';
-            
+//            console.log(event, params);
+            graphNode.color = '#f00';
+            graphNode.sublabel = updateNode.thres?updateNode.thres.toFixed(4):'';
+
             for(var i=0;i<updateNode.inConn.length;i++) {
                 var conn = updateNode.inConn[i];
                 appNS.graph.graph.edges(conn.id).label = conn.weight.toFixed(4);
             }
         }
-        
-        
     }
     
     function validateData(data) {
@@ -509,14 +500,11 @@
     }
 
     function render() {
-        if(isTrainingComplete) {
-            return;
+        
+        if(appNS.graph) {
+            appNS.graph.render();
         }
 
-        if(appNS.graph) {
-            appNS.graph.refresh();
-        }
-        
         for(var i=0;i<exampleProgress.length;i++) {
             $('#example-state-' + i + ' .example-number').html(i+1);
             $('#example-state-' + i + ' progress').attr('value', exampleProgress[i]);
@@ -526,9 +514,41 @@
             $('#example-state-' + i + ' .example-error').html(exampleError[i].toFixed(4));
         }        
         
-        window.requestAnimationFrame(render);
+        if(isBusy) {
+            window.requestAnimationFrame(render);
+        }
     }
     
+    function displayTooltip(text, x, y) {
+
+        if ($('#tooltip').length === 0) {
+            $('body').prepend($('<div />').attr('id', 'tooltip'));
+        }
+        var tt = $('#tooltip').html("");
+        var tooltipHeight = 30;
+
+        var xBorder = x + tt.width() + 30;
+        if (xBorder > $(window).width()){
+            x -= (xBorder - $(window).width());
+        }
+
+        var yBorder = y + tt.height() + 30;
+        if (yBorder > $(window).height()) {
+            y -= (tooltipHeight * 2);
+        }
+        
+        tt.append(text);
+        tt.css('left', x);
+        tt.css('top',  y);
+        tt.css('display', 'block');
+    }
+
+    function hideTooltip() {
+        $('#tooltip').css('display', 'none');
+    }
+
+
+
     document.addEventListener("DOMContentLoaded", function(event) { 
 
         $('.step').click(function() {
@@ -537,24 +557,32 @@
             }
             var $button = $(this);
             var mode = $button.attr('data-mode');
-            isStepByStep = (mode != 'full');
             isBusy = true;
             appNS.neuralNetwork.stepBy(mode);
+            render();
         });
         
         $( ".build" ).click(function(){
+            if(isBusy) {
+                return;
+            }
             var data = w2ui.grid.records;
-            var annData = [];
             if(!validateData(data)) {
                 alert("Invalid data, please make sure all the data are numerical and no missing data exist");
                 return;
             }
             
             if(appNS.neuralNetwork) {
-            //    NeuralNetwork.destroy();
-                //svg.selectAll('*').remove();
+                appNS.neuralNetwork.destroy();
+                appNS.graph.graph.clear();
+                appNS.graph.refresh();
+                appNS.graph.kill();
+                $('#graph').remove();
+                networkState = [];
             }
             
+            
+            appNS.examples = [];
             for(var i=0;i<data.length;i++) {
                 var rec = [[],[]];
                 
@@ -568,7 +596,8 @@
                         rec[1].push(data[i][idx]);
                     }
                 }
-                annData.push(rec);
+                appNS.examples.push(rec);
+                appNS.exampleColors.push('#'+Math.floor(Math.random()*16777215).toString(16));
             }        
 
             var epochs = $('#number-of-epochs').val();
@@ -582,7 +611,7 @@
             });
             appNS.neuralNetwork = new appNS.ANN({
                 assetsPath: "./assets/common/",
-                trainingDataset : annData,
+                trainingDataset : appNS.examples,
                 onUpdate : onNetworkUpdate,
                 epochs: epochs,
                 hiddenLayerCount: hiddenLayerCount,
@@ -614,41 +643,30 @@
                 $this.change();
                 return;
             }
-            $('#number-of-nodes-container select').remove();
+            var previousValues = [];
+            var $selects = $('#number-of-nodes-container select');
+            $.each($selects, function(idx, obj) {
+                previousValues.push($(obj).val());
+            });
+            
+            $selects.remove();
             for(var i=0;i<value;i++) {
                 var domSel = $('<select>');
+                var targetVal = previousValues[i]?previousValues[i]:2;
+
                 for(var j=2;j<8;j++) {
                     var domOpt = $('<option>').val(j).html(j);
-                    if(j == 3) {
+                    if(j == targetVal) {
                         domOpt.attr('selected', 'selected');
                     }
                     domSel.append(domOpt);
                 }
-                $('#number-of-nodes-container').append(domSel).append($("<br>"));
+                $('#number-of-nodes-container').append(domSel);
             }
         });
 
         $('#number-of-layers').change();
         prepareDatagrid(xords);
-
-        /*
-                        var layerCount = $('#number-of-layer').val();
-                    var layerNodeCounts = [];
-                    var $nodeCountSelect = $('#number-of-nodes-container select');
-                    $.each($nodeCountSelect, function(idx, obj) {
-                        layerNodeCounts.push($(obj).val());
-                    });
-                    NeuralNetwork = new ANN({
-                        trainingDataset : xords,//simpleinput,
-                        onUpdate : onNetworkUpdate
-                    });
-    */
-        //initialize();
-        //doTopolgy();
-        //var rz = predict([0,0])[0];
-        //console.log(rz);
-        //generateValues();
-        console.profile('Render');
     });
 
 
@@ -663,10 +681,6 @@
         };
 
 
-
-        // Instantiate sigma:
-        /*
-    */
 
         var width = 1;
         var height = 1;
@@ -728,6 +742,7 @@
 
         }
         
+        $('body').append('<div id="graph"></div>');
         appNS.graph = new sigma({
             graph: g,
             renderer: {
@@ -735,29 +750,66 @@
                 type: 'canvas'
             },
             settings: {
-                minEdgeSize: 4,
-                maxEdgeSize: 4,
-                minNodeSize: 15,
-                maxNodeSize: 15,
-                minArrowSize: 10,
+                minEdgeSize: 3,
+                maxEdgeSize: 3,
+                minNodeSize: 25,
+                maxNodeSize: 25,
+                minArrowSize: 15,
+                edgeLabelColor: 'edge'
             }
         });
         
-        
-        appNS.graph.bind('overNode outNode clickNode doubleClickNode rightClickNode', function(e) {
-            console.log(this, e.type, e.data.node, e.data.captor);
-            console.log(networkState);
+        //outNode clickNode doubleClickNode rightClickNode
+        appNS.graph.bind('outNode', function(e) {
+            var edges = appNS.graph.graph.edges();
+            for(var i=0;i<edges.length;i++) {
+                edges[i].color = '#aaa';
+            }
+            render();
+            hideTooltip();
         });
         
-        appNS.graph.bind('overEdge outEdge clickEdge doubleClickEdge rightClickEdge', function(e) {
-            console.log(e.type, e.data.edge, e.data.captor);
+        appNS.graph.bind('overNode', function(e) {
+
+            var node = networkState[e.data.node.layerIdx][e.data.node.nodeIdx];
+            
+            var vw = {
+                input : node.input?node.input.toFixed(4):'N/A',
+                thres : node.thres?node.thres.toFixed(4):'N/A',
+                output: node.output.toFixed(4),
+                error : node.error?node.error.toFixed(4):'N/A',
+            }
+            console.log(e.data)
+            var rendererId = e.data.renderer.conradId;
+            
+            displayTooltip(tmpl("tooltip_tmpl", vw), 
+                e.data.node['renderer'+rendererId+':x'] - e.data.node['renderer'+rendererId+':size'], 
+                e.data.node['renderer'+rendererId+':y'] + e.data.node['renderer'+rendererId+':size']
+            );
+
+            var edges = appNS.graph.graph.edges();
+            for(var i=0;i<edges.length;i++) {
+                edges[i].color = 'rgba(0,0,0,0)';
+            }
+            
+            for(var i=0;i<node.inConn.length;i++) {
+                var edge = appNS.graph.graph.edges(node.inConn[i].id);
+                edge.color = '#a00';
+            }
+            
+            for(var i=0;i<node.outConn.length;i++) {
+                var edge = appNS.graph.graph.edges(node.outConn[i].id);
+                edge.color = '#0a0';
+            }
+            render();
         });
+        
         
         var data = w2ui.grid.records;
         
         $('#examples tbody').html('');
         for(var i=0;i<data.length;i++) {
-            $('#examples tbody').append(tmpl("example_meter", {exampleId:i}));
+            $('#examples tbody').append(tmpl("example_meter", {exampleColor: appNS.exampleColors[i] ,exampleId:i}));
         }
         
         window.requestAnimationFrame(render);

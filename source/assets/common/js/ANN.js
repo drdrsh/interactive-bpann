@@ -3,6 +3,11 @@
     
     class ANN {
     
+        destroy() {
+            this._worker.terminate();
+            this._worker = null;
+        }
+        
         constructor(params) {
             var nparams = ['epochs', 'hiddenLayerCount', 'learningRate', 'tolerance', 'trainingDataset'];
             var defaults = {
@@ -26,6 +31,9 @@
             this._worker.onmessage = function(msg) {
                 var eventData = msg.data;
                 if(typeof self.params.onUpdate == "function") {
+                    if(eventData.event == 'training_done') {
+                        self._worker.terminate();
+                    }
                     self.params.onUpdate(eventData.event, eventData);
                 }
             }

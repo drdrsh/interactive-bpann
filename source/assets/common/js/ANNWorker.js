@@ -26,7 +26,7 @@ var networkStepper = null;
 
 function generateLinkName(layerIdx1, nodeIdx1, layerIdx2, nodeIdx2) {
     return "From " + generateNodeName(layerIdx1, nodeIdx1) + 
-            "To "  + generateNodeName(layerIdx2, nodeIdx2);
+           " To "  + generateNodeName(layerIdx2, nodeIdx2);
 }
 
 function generateLinkId(layerIdx1, nodeIdx1, layerIdx2, nodeIdx2) {
@@ -38,11 +38,11 @@ function generateNodeId(layerIdx, nodeIdx) {
 }
 function generateNodeName(layerIdx, nodeIdx) {
     if(layerIdx == 0) {
-        return "Input " + nodeIdx;
+        return "Input " + (nodeIdx + 1);
     }else if(layerIdx == OUTPUT_LAYER_INDEX) {
-        return "Output " + nodeIdx;
+        return "Output " + (nodeIdx + 1);
     } else {
-        return "Hidden "  + layerIdx + "," + nodeIdx;
+        return "Hidden "  + layerIdx + "," + (nodeIdx + 1);
     }
 }
 
@@ -80,10 +80,24 @@ function emitPredictionEvent(outset) {
         'network': layers
     });
 }
-function emitExampleEvent(exampleId) {
+function emitExampleEvent(exampleId, isAllExampleCorrect) {
+    
+    var newExampleId = exampleId;
+    
+    if(!isAllExampleCorrect) {
+        /* This means we will do more epochs which means a new example will be fed to the network
+        * then we update input nodes states
+        */
+        newExampleId = exampleId + 1;
+        if(newExampleId == maxExamples) {
+            newExampleId = 0;
+        }
+    }
+    
     self.postMessage({
-        'event'    : 'example_done',
-        'exampleId': exampleId
+        'event'        : 'example_done',
+        'exampleId'    : exampleId,
+        'nextExampleId': newExampleId
     });
 }
 function emitNetworkReadyEvent() {
@@ -116,11 +130,12 @@ function serializeNode(layerIdx, nodeIdx) {
 }
 
 function emitNodeEvent(eventId, layerIdx, nodeIdx) {
+    var node = serializeNode(layerIdx, nodeIdx);
     self.postMessage({
         'event'    : eventId,
         'layerIdx' : layerIdx,
         'nodeIdx'  : nodeIdx,
-        'node'     : serializeNode(layerIdx, nodeIdx)
+        'node'     : node
     });
 }
 
@@ -296,13 +311,15 @@ function* train() {
                 }
             }
            
-            emitExampleEvent(currentExample);
+
+            allExamplesCorrect = allExamplesCorrect && allOutputsCorrect;
+
+            emitExampleEvent(currentExample, allExamplesCorrect);
             if(pauseFlag || currentMode == 'example') {
                 emitPlainEvent('simulation_paused');
                 yield 5;
             }
             
-            allExamplesCorrect = allExamplesCorrect && allOutputsCorrect;
         }
         
         
@@ -397,6 +414,7 @@ function createNetwork(params) {
             "input"  : 0,
             "output" : 0,
             "target" : 0,
+            "thres"  : randomWeight(),
             "inConn" : [],
             "outConn": [],
             "hitTarget" : false,

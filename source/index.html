@@ -12,7 +12,7 @@
                 <section>
                     <p>
                         <label for="number-of-epochs">Number of Epochs:</label>
-                        <input type="number" min="1" max="20000" step="10" value="15000" id="number-of-epochs" />
+                        <input type="number" min="1" max="20001" step="10" value="15001" id="number-of-epochs" />
                     </p>
                     <p>
                         <label for="learning-rate">Learning Rate:</label>
@@ -36,26 +36,34 @@
             <div id="grid"></div>
         </div>
 
-        <div id="data-tab" class="tab-body">
-        </div>
+        <div id="about-tab" class="tab-body"></div>
         
         
         <ul>
             <li><a href="#params-tab" id="params-tab-a">Network Parameters</a></li>
-            <li><a href="#data-tab" id="data-tab-a">Data</a></li>
+            <li><a href="#about-tab" id="about-tab-a">About</a></li>
         </ul>
     </div>
     
     <script language="text/html" id="example_meter">
         <tr id="example-state-<%=exampleId%>">
             <td class="example-number"></td>
+            <td class="example-color" style="background-color:<%=exampleColor%>"></td>
             <td class="example-error"></td>
             <td class="example-progress"><progress value="0" max="100"></progress></td>
         </tr>
     </script>
 
+    <script language="text/html" id="tooltip_tmpl">
+        <ul>
+            <li>Input <%=input%></li>
+            <li>Threshold <%=thres%></li>
+            <li>Output <%=output%></li>
+            <li>Error <%=error%></li>
+        </ul>
+    </script>
 
-    <div id="graph"></div>
+
     <div id="controls">
         <button class="step" data-mode="node">Step by Node</button>
         <button class="step" data-mode="layer">Step by Layer</button>
@@ -68,7 +76,8 @@
         <table>
             <thead>
                 <tr>
-                    <th>Example</th>
+                    <th>#</th>
+                    <th></th>
                     <th>Error</th>
                     <th>Progress</th>
                 </tr>
@@ -77,15 +86,13 @@
             </tbody>
         </table>
     </div>
-    <div id="logger">
-    <textarea></textarea>
-    </div>
 
     <script src="./assets/lib/jquery/jquery.js"></script>
     <script src="./assets/lib/jquery-ui/jquery-ui.js"></script>
     <script src="./assets/lib/w2ui/w2ui.js"></script>
     <script src="./assets/lib/sigma/sigma.js"></script>
     <script>var appNS = {};</script>
+    <script src='./assets/common/js/sigma-overrides.js'></script>
     <script src='./assets/common/js/template.js'></script>
     <script src='./assets/common/js/main.js'></script>
     <script src='./assets/common/js/ANN.js'></script>
