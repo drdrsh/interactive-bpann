@@ -448,7 +448,6 @@
             }
             render();
             isTrainingComplete = true;
-            console.profileEnd();
         }
         
         /*
@@ -502,7 +501,6 @@
             }
         }
         
-        render();
         
     }
     
@@ -527,7 +525,8 @@
         for(var i=0;i<exampleError.length;i++) {
             $('#example-state-' + i + ' .example-error').html(exampleError[i].toFixed(4));
         }        
-        //window.requestAnimationFrame(render);
+        
+        window.requestAnimationFrame(render);
     }
     
     document.addEventListener("DOMContentLoaded", function(event) { 
@@ -761,6 +760,6 @@
             $('#examples tbody').append(tmpl("example_meter", {exampleId:i}));
         }
         
-        //window.requestAnimationFrame(render);
+        window.requestAnimationFrame(render);
     }
 }());
