@@ -33,10 +33,10 @@
                     <button class="build">Build</button>
                 </section>
             </form>
+            <div id="grid"></div>
         </div>
 
         <div id="data-tab" class="tab-body">
-            <div id="grid"></div>
         </div>
         
         
@@ -47,9 +47,11 @@
     </div>
     
     <script language="text/html" id="example_meter">
-        <li id="example-state-<%=exampleId%>">
-            <progress value="0" max="100"></progress>
-        </li>
+        <tr id="example-state-<%=exampleId%>">
+            <td class="example-number"></td>
+            <td class="example-error"></td>
+            <td class="example-progress"><progress value="0" max="100"></progress></td>
+        </tr>
     </script>
 
 
@@ -62,8 +64,18 @@
         <button class="step" data-mode="full">Full run</button>
     </div>
     <div id="examples">
-        <h4>Learning Progress<br>per example</h4>
-        <ol></ol>
+        <h4>Learning Progress</h4>
+        <table>
+            <thead>
+                <tr>
+                    <th>Example</th>
+                    <th>Error</th>
+                    <th>Progress</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
     </div>
     <div id="logger">
     <textarea></textarea>

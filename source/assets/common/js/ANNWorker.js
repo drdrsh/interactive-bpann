@@ -5,6 +5,7 @@ var networkInitialized = false;
 var trainingSet = [];
 var predictSet = [];
 
+var pauseFlag = false;
 var hiddenLayerCount = null;
 var learningRate     = 0;
 var tolerance        = 0;
@@ -263,13 +264,13 @@ function* train() {
                         //console.log(allTargetsHit);
                     }
                     emitNodeEvent('node_ff_done', currentLayer, currentNode);
-                    if(currentMode == 'node') {
+                    if(pauseFlag || currentMode == 'node') {
                         emitPlainEvent('simulation_paused');
                         yield 1;
                     }
                 }
                 emitLayerEvent('layer_ff_done', currentLayer);
-                if(currentMode == 'layer') {
+                if(pauseFlag || currentMode == 'layer') {
                     emitPlainEvent('simulation_paused');
                     yield 2;
                 }
@@ -282,13 +283,13 @@ function* train() {
                     for(currentNode=layers[currentLayer].length - 1;currentNode>=0;currentNode--) {
                         backPropagateNode(currentLayer, currentNode);
                         emitNodeEvent('node_bp_done', currentLayer, currentNode);
-                        if(currentMode == 'node'){
+                        if(pauseFlag || currentMode == 'node'){
                             emitPlainEvent('simulation_paused');
                             yield 3;
                         }
                     }
                     emitLayerEvent('layer_bp_done', currentLayer);
-                    if(currentMode == 'layer') {
+                    if(pauseFlag || currentMode == 'layer') {
                         emitPlainEvent('simulation_paused');
                         yield 4;
                     }
@@ -296,7 +297,7 @@ function* train() {
             }
            
             emitExampleEvent(currentExample);
-            if(currentMode == 'example') {
+            if(pauseFlag || currentMode == 'example') {
                 emitPlainEvent('simulation_paused');
                 yield 5;
             }
@@ -306,7 +307,7 @@ function* train() {
         
         
         emitEpochEvent(currentEpoch);
-        if(currentMode == 'epoch') {
+        if(pauseFlag || currentMode == 'epoch') {
             emitPlainEvent('simulation_paused');
             yield 6;
         }
@@ -314,6 +315,7 @@ function* train() {
         if(allExamplesCorrect) {
             break;
         } 
+        //yield 10;
     }
     
     emitPlainEvent('training_done');
@@ -454,6 +456,24 @@ self.onmessage = function(event) {
         currentMode = m.mode;
         networkStepper.next();
         return;
+    }
+
+    /*
+        Worker is single threaded so it cannot processes messages 
+        while the loop is running, this means it cannot be paused
+        I will need to make the loop check for signals every now 
+        and then
+    */
+    if(m.operation == 'pause') {
+        /*
+        if(pauseFlag) {
+            pauseFlag = false;
+            networkStepper.next();
+            return;
+        }
+        pauseFlag = true;
+        return;
+        */
     }
     
 };

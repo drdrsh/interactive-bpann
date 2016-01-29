@@ -6,6 +6,7 @@
     
     var isBusy = false;
     var isStepByStep = true;
+    var isTrainingComplete = false;
     
     var networkState = null
     var logQueue = [];
@@ -376,6 +377,7 @@
 
     var exampleBaseErrors = [];
     var exampleProgress = [];
+    var exampleError = [];
     
     function updateNetworkState(alteredNode) {
         var targetNode = networkState[alteredNode.layerIdx][alteredNode.nodeIdx];
@@ -394,6 +396,7 @@
     function onNetworkUpdate(event, params) {
 
         if(event == 'network_ready') {  
+            isTrainingComplete = false;
             networkState = params.network;
             doTopolgy();
             return;
@@ -429,6 +432,7 @@
                     percent = 0;
                 }
                 exampleProgress[params.exampleId] = (1 - percent) * 100;
+                exampleError[params.exampleId] = avgNodeError;
                 //logQueue.push('Example ' + params.exampleId + ' processed with error ' + avgNodeError);
             }
         }
@@ -438,6 +442,13 @@
             $('#logger textarea').val($('#logger textarea').val() + logQueue.join("\n"));
             $('#logger textarea').get(0).scrollTop = $('#logger textarea').get(0).scrollHeight;
             logQueue = [];
+            var nodes = appNS.graph.graph.nodes();
+            for(var i=0;i<nodes.length;i++) {
+                nodes[i].color = '#000';
+            }
+            render();
+            isTrainingComplete = true;
+            console.profileEnd();
         }
         
         /*
@@ -458,6 +469,19 @@
         }
         */
         
+        if(event == 'node_ff_done') {
+            var updateNode = networkState[params.node.layerIdx][params.node.nodeIdx];
+            if(isStepByStep) {
+                logQueue.push('Error at ' + updateNode.name + ' = ' + updateNode.error.toFixed(4));
+            }
+
+            var nodes = appNS.graph.graph.nodes();
+            for(var i=0;i<nodes.length;i++) {
+                nodes[i].color = '#000';
+            }
+            appNS.graph.graph.nodes(updateNode.id).color = '#0f0';
+        }
+        
         if(event == 'node_bp_done') {
             updateNetworkState(params.node);
 
@@ -477,23 +501,33 @@
                 appNS.graph.graph.edges(conn.id).label = conn.weight.toFixed(4);
             }
         }
+        
+        render();
+        
     }
+    
     function validateData(data) {
         return true;
     }
 
     function render() {
+        if(isTrainingComplete) {
+            return;
+        }
+
         if(appNS.graph) {
             appNS.graph.refresh();
         }
         
         for(var i=0;i<exampleProgress.length;i++) {
-            //$('#example-state-' + i + ' span').css('width', exampleProgress[i] + '%');
+            $('#example-state-' + i + ' .example-number').html(i+1);
             $('#example-state-' + i + ' progress').attr('value', exampleProgress[i]);
         }
         
-        
-        window.requestAnimationFrame(render);
+        for(var i=0;i<exampleError.length;i++) {
+            $('#example-state-' + i + ' .example-error').html(exampleError[i].toFixed(4));
+        }        
+        //window.requestAnimationFrame(render);
     }
     
     document.addEventListener("DOMContentLoaded", function(event) { 
@@ -502,7 +536,6 @@
             if(isBusy || !appNS.neuralNetwork) {
                 return;
             }
-            console.log('asd');
             var $button = $(this);
             var mode = $button.attr('data-mode');
             isStepByStep = (mode != 'full');
@@ -592,7 +625,7 @@
                     }
                     domSel.append(domOpt);
                 }
-                $('#number-of-nodes-container').append(domSel);
+                $('#number-of-nodes-container').append(domSel).append($("<br>"));
             }
         });
 
@@ -616,7 +649,7 @@
         //var rz = predict([0,0])[0];
         //console.log(rz);
         //generateValues();
-        
+        console.profile('Render');
     });
 
 
@@ -638,10 +671,10 @@
 
         var width = 1;
         var height = 1;
-        var nodeSpacingX = 0.5;
-        var nodeSpacingY = 0.1;
-        var nodeWidth   = 0.05;
-        var nodeHeight  = 0.05;
+        var nodeSpacingX = 0.1;
+        var nodeSpacingY = 0.05;
+        var nodeWidth   = 0.2;
+        var nodeHeight  = 0.2;
         var nodes = [];
         var links = [];
         var bgs = [];
@@ -649,11 +682,11 @@
 
         for(var i=0;i<layers.length;i++) {
 
-            var nodeCount  = layers[i].length;
-            var layerWidth = (nodeCount * nodeWidth) + ( (nodeCount - 1) * nodeSpacingX);
-            var layerHeight=  nodeHeight + (nodeSpacingY * 2);
-            var layerX = (width/2) - (layerWidth/2);
-            var layerY = height - (layerHeight * i) - layerHeight;
+            var nodeCount   = layers[i].length;
+            var layerHeight = (nodeCount * nodeHeight) + ( (nodeCount - 1) * nodeSpacingY);
+            var layerWidth  =  nodeWidth + (nodeSpacingX * 2);
+            var layerX = width + (layerWidth * i) + layerWidth
+            var layerY = (height/2) - (layerHeight/2);
             for(var j=0; j<layers[i].length;j++) {
                 var node = layers[i][j];
                 var type = 'hidden';
@@ -665,14 +698,14 @@
                 }
 
                 g.nodes.push({
-                    x       : layerX + (j * nodeWidth) + ( (j-1) * nodeSpacingX),
-                    y       : layerY,
+                    x       : layerX,
+                    y       : layerY + (j * nodeHeight) + ( (j-1) * nodeSpacingY),
                     type    : type,
                     layerIdx: i,
                     nodeIdx : j,
                     id : node.id,
                     label: node.name,
-                    size:  nodeWidth,
+                    size:  nodeWidth * 50,
                     color: '#666'
                 });
                 
@@ -685,11 +718,11 @@
                         id: node.outConn[k].id,
                         source: node.outConn[k].from.id,
                         target: node.outConn[k].to.id,
-                        size: 2.5,
+                        size: 5000,
                         label: node.outConn[k].weight.toFixed(3),
                         color: '#ccc',
                         hover_color: '#000',
-                        type: 'curved'
+                        type: 'arrow'
                     });
                 }
             }
@@ -703,15 +736,31 @@
                 type: 'canvas'
             },
             settings: {
+                minEdgeSize: 4,
+                maxEdgeSize: 4,
+                minNodeSize: 15,
+                maxNodeSize: 15,
+                minArrowSize: 10,
             }
         });
+        
+        
+        appNS.graph.bind('overNode outNode clickNode doubleClickNode rightClickNode', function(e) {
+            console.log(this, e.type, e.data.node, e.data.captor);
+            console.log(networkState);
+        });
+        
+        appNS.graph.bind('overEdge outEdge clickEdge doubleClickEdge rightClickEdge', function(e) {
+            console.log(e.type, e.data.edge, e.data.captor);
+        });
+        
         var data = w2ui.grid.records;
         
-        $('#examples ol').html('');
+        $('#examples tbody').html('');
         for(var i=0;i<data.length;i++) {
-            $('#examples ol').append(tmpl("example_meter", {exampleId:i}));
+            $('#examples tbody').append(tmpl("example_meter", {exampleId:i}));
         }
         
-        window.requestAnimationFrame(render);
+        //window.requestAnimationFrame(render);
     }
 }());

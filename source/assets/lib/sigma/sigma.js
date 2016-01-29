@@ -484,7 +484,7 @@
         c,
         bounds,
         prefix = 0;
-
+console.trace();
     options = options || {};
 
     // Call each middleware:
@@ -12194,13 +12194,13 @@
       throw '"edgeLabelSizePowRatio" must not be 0.';
 
     var fontSize,
-        x = (source[prefix + 'x'] + target[prefix + 'x']) / 2,
-        y = (source[prefix + 'y'] + target[prefix + 'y']) / 2,
+        x = ((source[prefix + 'x'] + target[prefix + 'x']) / 2),
+        y = ((source[prefix + 'y'] + target[prefix + 'y']) / 2),
         dX = target[prefix + 'x'] - source[prefix + 'x'],
         dY = target[prefix + 'y'] - source[prefix + 'y'],
         sign = (source[prefix + 'x'] < target[prefix + 'x']) ? 1 : -1,
         angle = Math.atan2(dY * sign, dX * sign);
-
+    
     // The font size is sublineraly proportional to the edge size, in order to
     // avoid very large labels on screen.
     // This is achieved by f(x) = x * x^(-1/ a), where 'x' is the size and 'a'
@@ -12248,10 +12248,9 @@
     context.rotate(angle);
     context.fillText(
       edge.label,
-      0,
+      -40,
       (-size / 2) - 3
     );
-
     context.restore();
   };
 }).call(this);

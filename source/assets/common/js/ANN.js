@@ -40,6 +40,10 @@
             this._worker.postMessage({'operation' : 'predict', 'input' : instance });
         }
         
+        pause() {
+            this._worker.postMessage({'operation' : 'pause'});
+        }
+        
         stepByFull(){
             this._worker.postMessage({'operation' : 'step', 'mode': 'full'});
         }
