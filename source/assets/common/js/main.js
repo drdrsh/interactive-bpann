@@ -29,6 +29,12 @@
         [0, 0]
     ];
 
+
+    function randomColor() {
+        var num = Math.floor(Math.random()*16777215).toString(16);
+        return "#" + ("000000" + num ).substr(num.length, 6);
+    }
+
     function prepareDatagrid(data) {
 
         var columns = [{ field: 'recid', caption: 'ID', size: '50px' }];
@@ -234,7 +240,7 @@
             isTrainingComplete = false;
             networkState = params.network;
             doTopolgy();
-            $('#controls').show();
+            $('#controls').removeClass('hidden');
             $('.run').html('Run');
             return;
         }
@@ -248,17 +254,21 @@
         if(event == 'example_done') {
             
             var error = 0;
+            //Do we have baseline errors? If no, let's calculate them
             if(exampleBaseErrors.length != w2ui.grid.records.length) {
-                for(var i=0;i<networkState[networkState.length-1].length;i++) {
-                    error += Math.abs(networkState[networkState.length-1][i].error);
+                var outputLayer = networkState[networkState.length-1];
+                //loop over output nodes
+                for(var i=0;i<outputLayer.length;i++) {
+                    error += Math.abs(outputLayer[i].error);
                 }
-                exampleBaseErrors.push(error / networkState[networkState.length-1].length);
+                exampleBaseErrors.push(error / outputLayer.length);
                 exampleProgress.push(0);
             } else {
-                for(var i=0;i<networkState[networkState.length-1].length;i++) {
-                    error += Math.abs(networkState[networkState.length-1][i].error);
+                var outputLayer = networkState[networkState.length-1];
+                for(var i=0;i<outputLayer.length;i++) {
+                    error += Math.abs(outputLayer[i].error);
                 }
-                var avgNodeError = error / networkState[networkState.length-1].length;
+                var avgNodeError = error / outputLayer.length;
                 var percent = avgNodeError / exampleBaseErrors[params.exampleId];
                 if(percent > 1) {
                     percent = 1;
@@ -266,8 +276,13 @@
                 if(percent < 0) {
                     percent = 0;
                 }
+                if(exampleProgress[params.exampleId] - ((1-percent) * 100) > 50){
+                    //debugger;
+                }
                 exampleProgress[params.exampleId] = (1 - percent) * 100;
+
                 exampleError[params.exampleId] = avgNodeError;
+                //console.log(params.exampleId, avgNodeError);
                 //logQueue.push('Example ' + params.exampleId + ' processed with error ' + avgNodeError);
             }
             
@@ -288,17 +303,18 @@
                 }
             }
         }
-        
+
+
         if(event == 'training_done') {
             isBusy = false;
             var nodes = appNS.graph.graph.nodes();
-            for(var i=0;i<nodes.length;i++) {
+            for (var i = 0; i < nodes.length; i++) {
                 nodes[i].color = '#000';
             }
-            $('.run').removeAttr('disabled', 'disabled');
-            $('.run').html('Restart');
+            $('.run').removeAttr('disabled', 'disabled').html('Restart');
             render();
             isTrainingComplete = true;
+            $('#example-state-0').click();
         }
         
         /*
@@ -320,7 +336,9 @@
         */
         
         if(event == 'node_ff_done') {
+            updateNetworkState(params.node);
             var updateNode = networkState[params.node.layerIdx][params.node.nodeIdx];
+            var graphNode = appNS.graph.graph.nodes(updateNode.id);
             updateNode.outputInvalid = false;
             
             var nodes = appNS.graph.graph.nodes();
@@ -329,7 +347,15 @@
                     nodes[i].color = '#000';
                 }
             }
-            appNS.graph.graph.nodes(updateNode.id).color = '#0f0';
+            graphNode.color = '#0f0';
+            if(updateNode.type == 'output') {
+                graphNode.sidelabel = updateNode.output.toFixed(4);
+            }
+            //Is this a prediction ff?
+            if(isTrainingComplete) {
+                render();
+                //console.log('rendering');
+            }
         }
         
         if(event == 'node_bp_done') {
@@ -411,7 +437,30 @@
 
 
 
-    document.addEventListener("DOMContentLoaded", function(event) { 
+    document.addEventListener("DOMContentLoaded", function(event) {
+
+        $('#about-dialog').dialog({
+            autoOpen: false,
+            modal: true,
+            maxWidth:600,
+            maxHeight: 500,
+            width: 600,
+            height: 500,
+            buttons: {
+                "Get Started" : function() {
+                    $('#about-dialog').dialog('close');
+                    if($('#menu .open').length == 0){
+                        $('#menu').click();
+                    }
+                }
+            }
+        });
+        $('#about-dialog').dialog('open');
+
+        $('#menu').click(function(){
+            $('#top-panel').toggleClass("is-slid");
+            $('#menu a').toggleClass("open");
+        });
 
         $('.run').click(function() {
             if(isTrainingComplete) {
@@ -426,12 +475,16 @@
             $button.attr('disabled', 'disabled');
             var mode = $('input[name=step-mode]:checked').val()
             var steps= $('#number-of-steps').val();
-            $('#examples').show();
+            $('#examples').removeClass('hidden');
             isBusy = true;
             appNS.neuralNetwork.stepBy(mode, steps);
             render();
         });
-        
+
+        $( ".about" ).click(function() {
+            $('#about-dialog').dialog('open');
+        });
+
         $( ".build" ).click(function(){
             if(isBusy) {
                 return;
@@ -448,11 +501,17 @@
                 appNS.graph.refresh();
                 appNS.graph.kill();
                 $('#graph').remove();
+                $('#examples').addClass('hidden');
+                $('#controls').addClass('hidden');
                 networkState = [];
+                exampleBaseErrors = [];
+                exampleProgress = [];
+                exampleError = [];
             }
             
             
             appNS.examples = [];
+            appNS.exampleColors = [];
             for(var i=0;i<data.length;i++) {
                 var rec = [[],[]];
                 
@@ -467,8 +526,8 @@
                     }
                 }
                 appNS.examples.push(rec);
-                appNS.exampleColors.push('#'+Math.floor(Math.random()*16777215).toString(16));
-            }        
+                appNS.exampleColors.push(randomColor());
+            }
 
             var epochs = $('#number-of-epochs').val();
             var learningRate = $('#learning-rate').val();
@@ -486,14 +545,14 @@
                 epochs: epochs,
                 hiddenLayerCount: hiddenLayerCount,
                 learningRate: learningRate,
-                tolerance: tolerance,
+                tolerance: tolerance
             });
-            console.log( $('#params-tab:visible') );
-            if( $('#params-tab:visible') ) {
-                $( "#params-tab-a" ).click();
+            if( $('#top-panel').hasClass('is-slid') ) {
+                $('#menu').click();
             }
         });
         
+        /*
         $( "#tabs" ).tabs({
             collapsible: true,
             activate: function(ev, ui) {
@@ -502,7 +561,7 @@
                 }
             }
         });
-        
+        */
         $('#number-of-layers').change(function(){
             var $this = $(this);
             var value = parseInt($this.val(), 10);
@@ -525,7 +584,7 @@
             $selects.remove();
             for(var i=0;i<value;i++) {
                 var domSel = $('<select>');
-                var targetVal = previousValues[i]?previousValues[i]:2;
+                var targetVal = previousValues[i]?previousValues[i]:3;
 
                 for(var j=2;j<8;j++) {
                     var domOpt = $('<option>').val(j).html(j);
@@ -615,7 +674,7 @@
 
         }
         
-        $('body').append('<div id="graph"></div>');
+        $('#top-panel').append('<div id="graph"></div>');
         appNS.graph = new sigma({
             graph: g,
             renderer: {
@@ -654,11 +713,13 @@
             }
 
             var rendererId = e.data.renderer.conradId;
-            
-            displayTooltip(tmpl("tooltip_tmpl", vw), 
-                e.data.node['renderer'+rendererId+':x'] - e.data.node['renderer'+rendererId+':size'], 
-                e.data.node['renderer'+rendererId+':y'] + e.data.node['renderer'+rendererId+':size']
-            );
+
+            if(isTrainingComplete) {
+                displayTooltip(tmpl("tooltip_tmpl", vw),
+                    e.data.node['renderer' + rendererId + ':x'] - e.data.node['renderer' + rendererId + ':size'],
+                    e.data.node['renderer' + rendererId + ':y'] + e.data.node['renderer' + rendererId + ':size']
+                );
+            }
 
             var edges = appNS.graph.graph.edges();
             for(var i=0;i<edges.length;i++) {
@@ -684,7 +745,23 @@
         for(var i=0;i<data.length;i++) {
             $('#examples tbody').append(tmpl("example_meter", {exampleColor: appNS.exampleColors[i] ,exampleId:i}));
         }
-        
+        $('#examples tr').click(function(){
+            if(!isTrainingComplete) {
+                return;
+            }
+            var exampleId = $(this).attr('data-example-id');
+            var input = appNS.examples[exampleId][0];
+
+            for(var j=0;j<networkState[0].length;j++) {
+                //Update input layer colors and values
+                networkState[0][j].output = input[j];
+                var graphNode = appNS.graph.graph.nodes(networkState[0][j].id);
+                graphNode.sublabel = networkState[0][j].output.toFixed(4);
+                graphNode.color = appNS.exampleColors[exampleId];
+            }
+            appNS.neuralNetwork.predict(input);
+        });
+
         window.requestAnimationFrame(render);
     }
 }());

@@ -19,7 +19,12 @@ module.exports = function(grunt) {
                 src: [
                     'bower_components/jquery-ui/ui/core.js',
                     'bower_components/jquery-ui/ui/widget.js',
-                    'bower_components/jquery-ui/ui/tabs.js'
+                    'bower_components/jquery-ui/ui/mouse.js',
+                    'bower_components/jquery-ui/ui/position.js',
+                    'bower_components/jquery-ui/ui/draggable.js',
+                    'bower_components/jquery-ui/ui/resizable.js',
+                    'bower_components/jquery-ui/ui/button.js',
+                    'bower_components/jquery-ui/ui/dialog.js'
                 ],
                 dest: 'bower_components/jquery-ui/jquery-ui.js'
             },

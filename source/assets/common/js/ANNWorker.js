@@ -77,8 +77,7 @@ function outputDerivative(v) {
 function emitPredictionEvent(outset) {
     self.postMessage({
         'event'  : 'prediction_done',
-        'output' : outset,          
-        'network': layers
+        'output' : outset
     });
 }
 function emitExampleEvent(exampleId, isAllExampleCorrect) {
@@ -187,6 +186,8 @@ function feedForwardNode(layerId, nodeId) {
 function backPropagateNode(layerId, nodeId) { 
     
     var node = layers[layerId][nodeId];
+    var prevError = node.error;
+
     node.error = outputDerivative(node.output);
     var cumError = 0;
     if(layerId == OUTPUT_LAYER_INDEX) {
@@ -234,7 +235,7 @@ function initMarginNodes(exampleId) {
     }
 }
 
-function* predict() {
+function predict() {
     
     initInputNodes(predictSet[0]);
     
@@ -243,16 +244,8 @@ function* predict() {
         for(currentNode=0;currentNode<layers[currentLayer].length;currentNode++) {
             feedForwardNode(currentLayer, currentNode);
             emitNodeEvent('node_ff_done', currentLayer, currentNode);
-            if(currentMode == 'node') {
-                emitEvent('simulation_paused');
-                yield 1;
-            }
         }
         emitLayerEvent('layer_ff_done', currentLayer);
-        if(currentMode == 'layer') {
-            emitEvent('simulation_paused');
-            yield 2;
-        }
     }
     
     var outset = [];
@@ -260,6 +253,7 @@ function* predict() {
         outset.push(layers[OUTPUT_LAYER_INDEX][i].output);
     }
     emitPredictionEvent(outset);
+    //console.log(outset);
     return null;
 }
 
@@ -301,7 +295,7 @@ function* train() {
             
             
             //Backpropagate
-            if(!allOutputsCorrect) {
+            //if(!allOutputsCorrect) {
                 for(currentLayer=layers.length - 1;currentLayer>=1;currentLayer--) {
                     for(currentNode=layers[currentLayer].length - 1;currentNode>=0;currentNode--) {
                         backPropagateNode(currentLayer, currentNode);
@@ -323,7 +317,7 @@ function* train() {
                         }
                     }
                 }
-            }
+            //}
            
 
             allExamplesCorrect = allExamplesCorrect && allOutputsCorrect;
@@ -497,7 +491,7 @@ self.onmessage = function(event) {
     
     if(m.operation == 'predict'){
         predictSet = [m.input];
-        networkStepper = predict();
+        predict();
         return;
     }
     

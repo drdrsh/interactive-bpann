@@ -6,76 +6,15 @@
     <link rel="stylesheet" type="text/css" href="./assets/lib/w2ui/w2ui.css" />
     <link rel="stylesheet" type="text/css" href="./assets/common/css/style.css" />
 <body>
-    <div id="tabs">
-        <div id="params-tab" class="tab-body">
-            <form method="dialog">
-                <section>
-                    <p>
-                        <label for="number-of-epochs">Number of Epochs:</label>
-                        <input type="number" min="1" max="20001" step="10" value="15001" id="number-of-epochs" />
-                    </p>
-                    <p>
-                        <label for="learning-rate">Learning Rate:</label>
-                        <input type="number" min="0.01" max="5" step="0.01" value="0.1" id="learning-rate" />
-                    </p>
-                    <p>
-                        <label for="tolerance">Tolerance:</label>
-                        <input type="number" min="0.01" max="0.5" step="0.01" value="0.1" id="tolerance" />
-                    </p>
-                    <p>
-                        <label for="number-of-layers">Number of hidden Layers:</label>
-                        <input type="number" min="1" max="5" step="1" value="1" id="number-of-layers" />
-                    </p>
-                    <p id="number-of-nodes-container">
-                        <label>Number of Nodes per layer:</label>
-                    </p>
-                    
-                    <button class="build">Build</button>
-                </section>
-            </form>
-            <div id="grid"></div>
+    <div id="top-panel">
+        <div id="menu">
+            <a class="navicon-button larr">
+                <div class="navicon"></div>
+            </a>
         </div>
-
-        <div id="about-tab" class="tab-body">
-        <h2>Interactive demo for Artificial neural networks</h2>
-        <p>
-        This is a very minimal demo that aims to serve as a visualization tool for instructors to help their students better grasp artificial neural networks. This demo allows a step-by-step iteration through a fully-connected backpropagation artificial neural network network to get some intuition as what goes on during the process of training. It uses the latest Javascript technologies, particularly the new keyword "yield" that allows clean loop pause and resume.
-        </p>
-        <p>
-         The code is available on <a href="https://github.com/drdrsh/interactive-bpann">github</a> and is released under MIT license. If you wish to contact me send me an email to mostafa.mohmmed@gmail.com.
-
-        
-        </div>
-        
-        
-        <ul>
-            <li><a href="#params-tab" id="params-tab-a">Network Parameters</a></li>
-            <li><a href="#about-tab" id="about-tab-a">About</a></li>
-        </ul>
-    </div>
-    
-    <script language="text/html" id="example_meter">
-        <tr id="example-state-<%=exampleId%>">
-            <td class="example-number"></td>
-            <td class="example-color" style="background-color:<%=exampleColor%>"></td>
-            <td class="example-error"></td>
-            <td class="example-progress"><progress value="0" max="100"></progress></td>
-        </tr>
-    </script>
-
-    <script language="text/html" id="tooltip_tmpl">
-        <ul>
-            <li>Input <%=input%></li>
-            <li>Threshold <%=thres%></li>
-            <li>Output <%=output%></li>
-            <li>Error <%=error%></li>
-        </ul>
-    </script>
-
-
-    <div id="controls">
-        <fieldset>
-            <legend>Stepping mode</legend>
+        <div id="controls" class="hidden">
+            <button class="run">Run</button>
+            <span class="inline-label">Stepping mode</span>
             <ul>
                 <li>
                     <input checked type="radio" name="step-mode" id="step-mode-node" value="node">
@@ -98,27 +37,98 @@
                     <label for="step-mode-full">Full</label>
                 </li>
             </ul>
-        <label for="number-of-steps">Number of steps</label>
-        <input type="number" min="1" max="500" step="1" value="1" id="number-of-steps" />
-                        
-        <button class="run">Run</button>
-        </fieldset>
+            <br clear="all">
+            <p>
+                <span class="inline-label">Number of steps</span>
+                <input type="number" min="1" max="500" step="1" value="1" id="number-of-steps" />
+            </p>
+
+
+        </div>
+        <div id="examples" class="hidden">
+            <table class="rwd-table">
+                <thead>
+                    <tr>
+                        <th colspan="15"><h4>Learning Progress <br> by Examples</h4></th>
+                    </tr>
+                    <tr>
+                        <th>#</th>
+                        <th>Progress</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
     </div>
-    <div id="examples">
-        <h4>Learning Progress</h4>
-        <table>
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th></th>
-                    <th>Error</th>
-                    <th>Progress</th>
-                </tr>
-            </thead>
-            <tbody>
-            </tbody>
-        </table>
+
+    <div id="bottom-panel">
+        <div class="container ">
+            <h1>Step-by-step Artificial Neural Network visualizer</h1>
+            <form>
+                <a href="#" class="button build">Build</a>
+                <!-- <a href="#" class="button help ">Help</a> -->
+                <a href="#" class="button about">About</a>
+                <h2>Settings</h2>
+                <section>
+                    <p>
+                        <label for="number-of-epochs">Epochs</label>
+                        <input type="number" min="1" max="20001" step="10" value="15001" id="number-of-epochs" />
+                    </p>
+                    <p>
+                        <label for="learning-rate">Learning Rate</label>
+                        <input type="number" min="0.01" max="5" step="0.01" value="0.5" id="learning-rate" />
+                    </p>
+                    <p>
+                        <label for="tolerance">Tolerance</label>
+                        <input type="number" min="0.01" max="0.5" step="0.01" value="0.1" id="tolerance" />
+                    </p>
+                    <p>
+                        <label for="number-of-layers">Hidden Layers</label>
+                        <input type="number" min="1" max="5" step="1" value="1" id="number-of-layers" />
+                    </p>
+                    <p id="number-of-nodes-container">
+                        <label>Nodes per layer</label>
+                    </p>
+
+                </section>
+            </form>
+            <br clear="all" />
+            <h2>Data</h2>
+            <div id="grid"></div>
+        </div>
     </div>
+
+    <div id="about-dialog" class="tab-body">
+        <h2>Interactive demo for Artificial neural networks</h2>
+        <p>
+        This is a very minimal demo that aims to serve as a visualization tool for instructors to help their students better grasp artificial neural networks. This demo allows a step-by-step iteration through a fully-connected backpropagation artificial neural network network to get some intuition as what goes on during the process of training. It uses the latest Javascript technologies, particularly the new keyword "yield" that allows clean loop pause and resume.
+        </p>
+        <p>The demo uses latest ES6 features so <u><b>it won't work on all browsers.</b></u></p>
+        <p>
+         The code still needs cleanup and further testing so issue reports and pull request are most welcome, the code is available on <a href="https://github.com/drdrsh/interactive-bpann">github</a> and is released under MIT license. If you wish to contact me send me an email to mostafa.mohmmed@gmail.com.
+        </p>
+    </div>
+
+    </div>
+    
+    <script language="text/html" id="example_meter">
+        <tr id="example-state-<%=exampleId%>" data-example-id="<%=exampleId%>">
+            <td class="example-number"></td>
+            <td class="example-progress" style="background-color:<%=exampleColor%>"><progress value="0" max="100"></progress></td>
+        </tr>
+    </script>
+
+    <script language="text/html" id="tooltip_tmpl">
+        <ul>
+            <li>Input <%=input%></li>
+            <li>Threshold <%=thres%></li>
+            <li>Output <%=output%></li>
+            <!--<li>Error <%=error%></li>-->
+        </ul>
+    </script>
+
+
 
     <script src="./assets/lib/jquery/jquery.js"></script>
     <script src="./assets/lib/jquery-ui/jquery-ui.js"></script>

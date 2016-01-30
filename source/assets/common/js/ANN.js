@@ -31,9 +31,6 @@
             this._worker.onmessage = function(msg) {
                 var eventData = msg.data;
                 if(typeof self.params.onUpdate == "function") {
-                    if(eventData.event == 'training_done') {
-                        self._worker.terminate();
-                    }
                     self.params.onUpdate(eventData.event, eventData);
                 }
             }
@@ -45,6 +42,7 @@
         }
         
         predict(instance) {
+            console.log(instance);
             this._worker.postMessage({'operation' : 'predict', 'input' : instance });
         }
         
