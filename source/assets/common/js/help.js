@@ -25,10 +25,10 @@
          or you can opt for a full run (either until the network converges or the epoch limit is hit).\
      ');
     helpStrings.push(
-        'There are the examples used for training, each example is given a unique color (no guarantees though :P). This \
-         shows you have far is the network from converging on an answer for that particular example. After the network if\
-         fully trained or reaches the epoch limit, clicking any of these examples will feed that example in the network\
-         and show you the results.\
+        'There are the examples used for training, each example is given a unique color (no guarantees though :P). The \
+         progress bar for each example shows you how far is the network from converging on an answer for that particular\
+         example. After the training terminates (either due to convergence or reaching the epoch limit), clicking any of \
+         these examples will feed that example in the network and show you the state of each node.\
      ');
 
 
