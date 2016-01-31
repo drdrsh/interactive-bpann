@@ -29,6 +29,12 @@
         [0, 0]
     ];
 
+    function prepareHelp(){
+
+
+
+
+    }
 
     function randomColor() {
         var num = Math.floor(Math.random()*16777215).toString(16);
@@ -242,12 +248,17 @@
             doTopolgy();
             $('#controls').removeClass('hidden');
             $('.run').html('Run');
+
+            //Do one epoch
+            appNS.neuralNetwork.stepByEpoch(1);
+            $('#examples').removeClass('hidden');
             return;
         }
         
         if(event == 'simulation_paused'){
             isBusy = false;
             $('.run').removeAttr('disabled', 'disabled');
+            render();
         }
         
         
@@ -447,7 +458,11 @@
             width: 600,
             height: 500,
             buttons: {
-                "Get Started" : function() {
+                "Take a tour" : function() {
+                    $('.help').click()
+                    $('#about-dialog').dialog('close');
+                },
+                "Build your own Network" : function() {
                     $('#about-dialog').dialog('close');
                     if($('#menu .open').length == 0){
                         $('#menu').click();
@@ -458,11 +473,18 @@
         $('#about-dialog').dialog('open');
 
         $('#menu').click(function(){
+            if(isBusy){
+                return;
+            }
             $('#top-panel').toggleClass("is-slid");
             $('#menu a').toggleClass("open");
         });
 
         $('.run').click(function() {
+            //Close an open menu
+            if($('#menu .open').length){
+                $('#menu').click();
+            }
             if(isTrainingComplete) {
                 $('.build').click();
                 return;
@@ -475,14 +497,26 @@
             $button.attr('disabled', 'disabled');
             var mode = $('input[name=step-mode]:checked').val()
             var steps= $('#number-of-steps').val();
-            $('#examples').removeClass('hidden');
             isBusy = true;
             appNS.neuralNetwork.stepBy(mode, steps);
             render();
         });
 
         $( ".about" ).click(function() {
+            if(isBusy){
+                return;
+            }
             $('#about-dialog').dialog('open');
+        });
+
+        $( ".help" ).click(function() {
+            if(isBusy){
+                return;
+            }
+            $('.build').click();
+            setTimeout(function(){
+                appNS.helpEngine.start();
+            }, 500);
         });
 
         $( ".build" ).click(function(){

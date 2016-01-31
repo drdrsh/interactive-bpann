@@ -12,6 +12,8 @@
                 <div class="navicon"></div>
             </a>
         </div>
+        <div class="help"></div>
+        <div class="about"></div>
         <div id="controls" class="hidden">
             <button class="run">Run</button>
             <span class="inline-label">Stepping mode</span>
@@ -66,9 +68,7 @@
         <div class="container ">
             <h1>Step-by-step Artificial Neural Network visualizer</h1>
             <form>
-                <a href="#" class="button build">Build</a>
-                <!-- <a href="#" class="button help ">Help</a> -->
-                <a href="#" class="button about">About</a>
+                <a href="javascript:void(0)" class="button build">Build</a>
                 <h2>Settings</h2>
                 <section>
                     <p>
@@ -100,11 +100,19 @@
     </div>
 
     <div id="about-dialog" class="tab-body">
-        <h2>Interactive demo for Artificial neural networks</h2>
+        <h2>Interactive visualization of artificial neural networks</h2>
         <p>
-        This is a very minimal demo that aims to serve as a visualization tool for instructors to help their students better grasp artificial neural networks. This demo allows a step-by-step iteration through a fully-connected backpropagation artificial neural network network to get some intuition as what goes on during the process of training. It uses the latest Javascript technologies, particularly the new keyword "yield" that allows clean loop pause and resume.
+        <a href="javascript:void(0)">This</a> demo aims to serve as a tool to help visual learners, like myself, to gain visual intuition
+        as to how artificial neural networks work. This demo allows a step-by-step iteration through a fully-connected
+            backpropagation artificial neural network network to get some intuition as to what goes on during
+            the process of training.
+            It uses the latest Javascript technologies, particularly the "yield" keyword that allows clean loop pause
+            and resume. The default demo attempts to learn an XOR problem.
         </p>
-        <p>The demo uses latest ES6 features so <u><b>it won't work on all browsers.</b></u></p>
+        <p>The demo is experimental and it uses the latest ES6 features so
+            <span style="color:red;text-decoration: underline;font-weight:bold">it won't work on all browsers, also
+            the performance still needs optimization so I recommend running it in Google Chrome.</span>
+        </p>
         <p>
          The code still needs cleanup and further testing so issue reports and pull request are most welcome, the code is available on <a href="https://github.com/drdrsh/interactive-bpann">github</a> and is released under MIT license. If you wish to contact me send me an email to mostafa.mohmmed@gmail.com.
         </p>
@@ -138,6 +146,7 @@
     <script src='./assets/common/js/sigma-overrides.js'></script>
     <script src='./assets/common/js/template.js'></script>
     <script src='./assets/common/js/main.js'></script>
+    <script src='./assets/common/js/help.js'></script>
     <script src='./assets/common/js/ANN.js'></script>
 </body>
 </html>

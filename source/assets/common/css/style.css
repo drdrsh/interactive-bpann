@@ -1,11 +1,6 @@
 @import url(https://fonts.googleapis.com/css?family=Lato:400,300);
 
-#menu {
-    width: 50px;
-    height: 50px;
-    background-size: cover;
-    cursor: pointer;
-}
+
 
 body {
     margin: 0;
@@ -396,3 +391,123 @@ td.example-color {
     border-top: 1px solid #ddd;
     border-bottom: 1px solid #ddd;
 }
+
+
+#help-bubble {
+    display:block;
+    position: fixed;
+    z-index: 9999;
+    max-width:600px;
+
+    opacity: 0.96;
+    margin:0;
+    width:350px;
+    border-radius:4px;
+    padding:5px;
+    background-color:#333;
+    color:white;
+}
+
+
+
+.triangle-border:before {
+    content: "";
+    position: absolute;
+    bottom: -20px;
+    left: 40px;
+    border-width: 20px 20px 0;
+    border-style: solid;
+    border-color: #333 rgba(0, 0, 0, 0);
+    display: block;
+    width: 0;
+}
+
+.triangle-border:after {
+    content: "";
+    position: absolute;
+    bottom: -13px;
+    left: 47px;
+    border-width: 13px 13px 0;
+    border-style: solid;
+    border-color: #333 rgba(0, 0, 0, 0);
+    display: block;
+    width: 0;
+}
+.triangle-border.right:before {
+    top:10px; /* controls vertical position */
+    bottom:auto;
+    left:auto;
+    right:-30px; /* value = - border-left-width - border-right-width */
+    border-width:15px 0 15px 30px;
+    border-color:transparent #333;
+}
+/* creates the smaller  triangle */
+.triangle-border.right:after {
+    top:16px; /* value = (:before top) + (:before border-top) - (:after border-top) */
+    bottom:auto;
+    left:auto;
+    right:-21px; /* value = - border-left-width - border-right-width */
+    border-width:9px 0 9px 21px;
+    border-color:transparent #333;
+}
+
+#help-bubble .next{
+    float: right;
+}
+
+#help-bubble .close {
+    position: absolute;
+    right: 0px;
+    top: 0px;
+    width: 20px;
+    height: 20px;
+    color: #FFF;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.help {
+    background-image: url("../images/help.png");
+    width:50px;
+    height:50px;
+    background-size: cover;
+    position:absolute;
+    cursor: pointer;
+    left: 140px;
+    top: 10px;
+    transition-property: transform;
+    transition-duration: 0.3s;
+    transform: translate3d(0, 0, 0);
+}
+
+.help:hover {
+    transform: translate3d(0, -10px, 0);
+}
+.about {
+    background-image: url("../images/info.png");
+    width:50px;
+    height:50px;
+    background-size: cover;
+    cursor: pointer;
+    position:absolute;
+    left: 75px;
+    top: 10px;
+    transition-property: transform;
+    transition-duration: 0.3s;
+    transform: translate3d(0, 0, 0);
+}
+
+.about:hover {
+    transform: translate3d(0, -10px, 0);
+}
+
+#menu {
+    width: 50px;
+    height: 50px;
+    background-size: cover;
+    cursor: pointer;
+    position:absolute;
+    left: 0px;
+    top: 0px;
+}
+
