@@ -513,7 +513,9 @@
             if(isBusy){
                 return;
             }
-            $('.build').click();
+            if(!appNS.graph) {
+                $('.build').click();
+            }
             setTimeout(function(){
                 appNS.helpEngine.start();
             }, 500);
