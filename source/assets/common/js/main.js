@@ -478,6 +478,8 @@
             }
             $('#top-panel').toggleClass("is-slid");
             $('#menu a').toggleClass("open");
+            appNS.helpEngine.close();
+ 
         });
 
         $('.run').click(function() {

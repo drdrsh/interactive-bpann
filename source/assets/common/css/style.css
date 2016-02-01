@@ -433,6 +433,11 @@ td.example-color {
     display: block;
     width: 0;
 }
+
+
+.triangle-border.right {
+  margin-left:auto;
+}
 .triangle-border.right:before {
     top:10px; /* controls vertical position */
     bottom:auto;
@@ -451,6 +456,27 @@ td.example-color {
     border-color:transparent #333;
 }
 
+.triangle-border.left {
+  margin-left:auto;
+}
+
+/* creates the larger triangle */
+.triangle-border.left:before {
+  top:10px; /* controls vertical position */
+  bottom:auto;
+  left:-30px; /* value = - border-left-width - border-right-width */
+  border-width:15px 30px 15px 0;
+  border-color:transparent #333;
+}
+
+/* creates the smaller  triangle */
+.triangle-border.left:after {
+  top:16px; /* value = (:before top) + (:before border-top) - (:after border-top) */
+  bottom:auto;
+  left:-21px; /* value = - border-left-width - border-right-width */
+  border-width:9px 21px 9px 0;
+  border-color:transparent #333;
+}
 #help-bubble .next{
     float: right;
 }

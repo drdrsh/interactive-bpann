@@ -30,6 +30,7 @@
          example. After the training terminates (either due to convergence or reaching the epoch limit), clicking any of \
          these examples will feed that example in the network and show you the state of each node.\
      ');
+    helpStrings.push('You can always click here to change the settings of your network and the training data');
 
 
     var currentStep = 0;
@@ -120,7 +121,8 @@
         $tt.addClass('visible');
 
         layoutBubble();
-
+        $next.focus();
+        
     }
 
     function layoutBubble() {
@@ -152,8 +154,9 @@
 
         var $target = $(currentBubbleParams.target);
         var targetData = $target.offset();
+
         targetData['width'] = $target.width();
-        targetData['height'] = $target.width();
+        targetData['height'] = $target.height();
 
         var bubbleSize = {
             width: $ib.width(),
@@ -176,16 +179,23 @@
                 break;
             case 'left':
                 bubbleLeft = targetData.left - bubbleSize.width - 32;
-                bubbleTop = targetData.top + (targetData.height/2) + (bubbleSize.height / 2);
+                bubbleTop = targetData.top + (targetData.height/2) - (bubbleSize.height / 2);
                 arrowPosition = 'right';
+                console.log(targetData.top ,targetData.height, bubbleSize.height    );
                 break;
             case 'right':
-                bubbleLeft = targetData.left + targetData.width + bubbleSize.width + 32;
+                bubbleLeft = targetData.left + targetData.width + 32;
                 bubbleTop = targetData.top + (targetData.height/2) - (bubbleSize.height / 2);
                 arrowPosition = 'left';
+
                 break;
         }
-
+        if(bubbleLeft < 0){
+            bubbleLeft = 0;
+        }
+        if(bubbleTop < 0){
+            bubbleTop = 0;
+        }
         $ib.css({left: bubbleLeft + 'px', top: bubbleTop + 'px' });
         if(currentBubbleParams.arrow) {
             $ib.addClass('triangle-border ' + arrowPosition);
@@ -197,7 +207,7 @@
         $('#help-bubble').css('display', 'none');
     }
 
-
+    
     function step1() {
         var inputNode = appNS.graph.graph.nodes()[0];
         centerOnNode(inputNode, function(){
@@ -266,6 +276,11 @@
     }
     steps.push(step5);
 
+    function step6() {
+        displayHelpBubble( {target:'#menu', relation:'right', arrow: true, text: helpStrings[5]});
+    }
+    steps.push(step6);
+
     function centerOnNode(node, cb) {
         sigma.misc.animation.camera(
             appNS.graph.camera,
@@ -282,6 +297,9 @@
     }
 
     function start() {
+        if($('#menu .open').length != 0){
+            $('#menu').click();
+        }
         currentStep = -1;
         next();
     }
@@ -313,6 +331,7 @@
         next: next,
         previous: previous,
         start: start,
+        close: onClose
     };
     appNS.helpEngine = helpEngine;
 }());
