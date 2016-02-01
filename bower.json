@@ -23,6 +23,6 @@
     "jquery": "~2.1.4",
     "jquery-ui": "~1.11.4",
     "w2ui": "~1.4.3",
-    "sigma": "~1.0.3"
+    "sigma.js": "https://github.com/jacomyal/sigma.js.git#85c65ad497a365d1216954b4c6fc3a538ea90745"
   }
 }
