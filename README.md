@@ -6,7 +6,6 @@ This demo aims to serve as a tool to help visual learners, like myself, to gain 
 
 The code still needs cleanup and further testing so issue reports and pull request are most welcome. The code is live on http://experiments.mostafa.io/public/ffbpann/
 
-
 # How to install locally
 
 To run this demo on your local machine (technically, it is a client side so it will always run on your machine, but you get the idea), you will need to have [nodejs](https://nodejs.org/en/), [npm](https://www.npmjs.com/), [grunt](http://gruntjs.com) and [bower](http://bower.io/) installed.
