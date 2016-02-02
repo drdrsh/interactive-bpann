@@ -20,7 +20,7 @@ navigate to the path where the code resides and run
     grunt
     grunt serve
 
-This will install all the dependancies and run grunt server on port 9000 
+This will install all the dependancies and run grunt server on port 9000, then navigate to the following url 
 
     http://localhost:9000/index.html
     
