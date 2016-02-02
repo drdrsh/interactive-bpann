@@ -457,6 +457,7 @@
             maxHeight: 500,
             width: 600,
             height: 500,
+            title: "Visualization of artificial neural networks",
             buttons: {
                 "Take a tour" : function() {
                     $('.help').click()
