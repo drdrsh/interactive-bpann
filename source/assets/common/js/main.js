@@ -8,9 +8,13 @@
     
     var isBusy = false;
     var isTrainingComplete = false;
-    
     var networkState = null
-
+    
+    
+    //Ugly fix for the race condition when the topology isn't ready and the help starts
+    //TODO: solve this with promises
+    var shouldStartTour = false;
+    
     
     //XOR
     var xords = [
@@ -248,10 +252,14 @@
             doTopolgy();
             $('#controls').removeClass('hidden');
             $('.run').html('Run');
-
+            
             //Do one epoch
             appNS.neuralNetwork.stepByEpoch(1);
             $('#examples').removeClass('hidden');
+            if(shouldStartTour) {
+                appNS.helpEngine.start();
+                shouldStartTour = false;
+            }
             return;
         }
         
@@ -532,11 +540,12 @@
                 return;
             }
             if(!appNS.graph) {
+                shouldStartTour = true;
                 $('.build').click();
-            }
-            setTimeout(function(){
+            } else {
                 appNS.helpEngine.start();
-            }, 250);
+            }
+            
         });
 
         $( ".build" ).click(function(){
