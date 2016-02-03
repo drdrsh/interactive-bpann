@@ -449,7 +449,20 @@
 
 
     document.addEventListener("DOMContentLoaded", function(event) {
+        
+        $('.share').click(function(event) {
 
+            event.preventDefault();
+            console.log($(this).attr('href'));
+            var winWidth = 500;
+            var winHeight= 500;
+            var winTop = 0;
+            var winLeft = 0;
+            window.open($(this).attr('href'), 'share', 'top=' + winTop + ',left=' + winLeft + ',toolbar=0,status=0,width=' + winWidth + ',height=' + winHeight);
+            
+        });
+        
+        
         $('#about-dialog').dialog({
             autoOpen: false,
             modal: true,
@@ -488,6 +501,7 @@
             if($('#menu .open').length){
                 $('#menu').click();
             }
+            appNS.helpEngine.close();
             if(isTrainingComplete) {
                 $('.build').click();
                 return;
@@ -510,6 +524,7 @@
                 return;
             }
             $('#about-dialog').dialog('open');
+            appNS.helpEngine.close();
         });
 
         $( ".help" ).click(function() {
@@ -521,7 +536,7 @@
             }
             setTimeout(function(){
                 appNS.helpEngine.start();
-            }, 500);
+            }, 250);
         });
 
         $( ".build" ).click(function(){

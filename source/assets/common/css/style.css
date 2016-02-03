@@ -1,7 +1,5 @@
 @import url(https://fonts.googleapis.com/css?family=Lato:400,300);
 
-
-
 body {
     margin: 0;
 }
@@ -91,45 +89,6 @@ form p {
 	transition-delay: 0s;
 }
 
-#tabs .ui-tabs-panel {
-    background-color: #eee;
-}
-
-#tabs.ui-widget-content {
-    background: none;
-    background-color:transparent;
-    border:0;
-    color:white;
-}
-
-#tabs .ui-tabs-nav {
-    padding:0;
-}
-
-#tabs .ui-widget-header {
-    border:0;
-    background: none;
-    background-color: transparent;
-}
-
-#tabs .ui-tabs-nav li:first-child {
-    margin:0;
-}
-#tabs .ui-tabs-nav li {
-    margin: 0px 5px;
-    border-radius: 0px 0px 15px 15px;
-}
-#controls ul {
-    list-style:none;
-    float:left;
-    margin:0;
-    padding:0;
-}
-
-#controls p{
-    margin: 0;
-    margin-top: 5px;
-}
 .inline-label {
     font-weight:bold;
     float:left;
@@ -139,8 +98,6 @@ form p {
     float:right;
 }
 
-
-
 #graph {
     width:100%;
     height:100%;
@@ -149,11 +106,7 @@ form p {
     top:0px;
     z-index:-5;
 }
-#logger textarea{
-    width:100%;
-    height:100%;
-    font-size:80%;
-}
+
 #controls {
     position: absolute;
     bottom: 25px;
@@ -179,6 +132,20 @@ form p {
 #controls li {
     float: left;
 }
+
+#controls ul {
+    list-style:none;
+    float:left;
+    margin:0;
+    padding:0;
+}
+
+#controls p{
+    margin: 0;
+    margin-top: 5px;
+}
+
+
 
 #examples {
     position:fixed;
@@ -217,17 +184,7 @@ form p {
     color:white;
 }
 #tooltip ul, #tooltip h3, #tooltip div, #tooltip p{ margin: 0; text-align:center; }
-#tooltip ul {
-    list-style:none;
-    text-align:left;
-    padding:0;
-    background-color:navy;
-	border-radius:10px;
-	padding: 5px;
-}
-#tooltip ul.invalid {
-    background-color:red;
-}
+
 
 td.example-color {
     width:32px;
@@ -281,10 +238,6 @@ td.example-color {
     position:relative;
     top:1px;
 }
-
-
-
-
 
 
 
@@ -492,48 +445,67 @@ td.example-color {
     cursor: pointer;
 }
 
-.help {
-    background-image: url("../images/help.png");
-    width:50px;
-    height:50px;
-    background-size: cover;
-    position:absolute;
-    cursor: pointer;
-    left: 140px;
-    top: 10px;
-    transition-property: transform;
-    transition-duration: 0.3s;
-    transform: translate3d(0, 0, 0);
-}
 
-.help:hover {
-    transform: translate3d(0, -10px, 0);
-}
-.about {
-    background-image: url("../images/info.png");
-    width:50px;
-    height:50px;
-    background-size: cover;
-    cursor: pointer;
-    position:absolute;
-    left: 75px;
-    top: 10px;
-    transition-property: transform;
-    transition-duration: 0.3s;
-    transform: translate3d(0, 0, 0);
-}
 
-.about:hover {
-    transform: translate3d(0, -10px, 0);
-}
 
-#menu {
+#top-left-pane {
+    position: absolute;
+    top:0px;
+    left:0px;
+}
+#top-left-pane > div {
+    float:left;
     width: 50px;
     height: 50px;
     background-size: cover;
     cursor: pointer;
-    position:absolute;
-    left: 0px;
-    top: 0px;
+    margin-right: 10px;
 }
 
+
+#top-left-pane .help,
+#top-left-pane .about {
+    transition-property: transform;
+    transition-duration: 0.3s;
+    transform: translate3d(0, 0, 0);
+    margin-top: 10px;
+    margin-left: 20px;
+}
+
+#top-left-pane .help {
+    background-image: url("../images/help.png");
+    margin-left: 35px;
+}
+
+#top-left-pane .about {
+    background-image: url("../images/info.png");
+}
+
+#top-left-pane .help:hover {
+    transform: translate3d(0, -7px, 0);
+}
+
+#top-left-pane .about:hover {
+    transform: translate3d(0, -7px, 0);
+}
+
+
+#lower-left-pane {
+    position: absolute;
+    bottom:25px;
+    left:15px;
+}
+
+#lower-left-pane a.share img {
+    transition-property: transform;
+    transition-duration: 0.3s;
+    transform: translate3d(0, 0, 0);
+    width: 35px;
+    padding: 3px;
+    border: 0;
+    display: inline;
+}
+
+#lower-left-pane a.share img:hover {
+    transform: translate3d(0, -7px, 0);
+}

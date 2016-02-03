@@ -20,15 +20,24 @@
 </head>
 <body>
     <div id="top-panel">
-        <div id="menu">
-            <a class="navicon-button larr">
-                <div class="navicon"></div>
-            </a>
+
+        <div id="top-left-pane">
+            <div id="menu">
+                <a class="navicon-button larr">
+                    <div class="navicon"></div>
+                </a>
+            </div>
+            <div class="help"></div>
+            <div class="about"></div>
         </div>
-        <div class="help"></div>
-        <div class="about"></div>
+        
+        <div id="lower-left-pane">
+            <a class="share" href="http://www.facebook.com/sharer.php?u=http://experiments.mostafa.io/public/ffbpann/" target="_blank"><img src="./assets/common/images/facebook.png" alt="Facebook" /></a>
+            <a class="share" href="https://plus.google.com/share?url=http://experiments.mostafa.io/public/ffbpann/" target="_blank"><img src="./assets/common/images/google.png" alt="Google" /></a>
+            <a class="share" href="https://twitter.com/share?url=http://experiments.mostafa.io/public/ffbpann/&text=Step-by-step Artificial Neural Network visualizer" target="_blank"><img src="./assets/common/images/twitter.png" alt="Twitter" /></a>
+        </div>
+    
         <div id="controls" class="hidden">
-            <button class="run">Run</button>
             <span class="inline-label">Stepping mode</span>
             <ul>
                 <li>
@@ -56,6 +65,7 @@
             <p>
                 <span class="inline-label">Number of steps</span>
                 <input type="number" min="1" max="500" step="1" value="1" id="number-of-steps" />
+                <button class="run">Run</button>
             </p>
 
 
@@ -147,7 +157,7 @@
     </script>
 
 
-
+    
     <script src="./assets/lib/jquery/jquery.js"></script>
     <script src="./assets/lib/jquery-ui/jquery-ui.js"></script>
     <script src="./assets/lib/w2ui/w2ui.js"></script>
