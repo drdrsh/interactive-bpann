@@ -32,7 +32,7 @@
      ');
     helpStrings.push('You can always click here to change the settings of your network and the training data');
 
-
+    var isHelpRunning = false;
     var currentStep = 0;
     var steps = [];
 
@@ -49,6 +49,10 @@
     }
 
     function onClose() {
+        if(!isHelpRunning) {
+            return;
+        }
+        isHelpRunning = false;
         $('#help-bubble').remove();
         currentStep = 0;
         sigma.misc.animation.camera(
@@ -297,6 +301,7 @@
     }
 
     function start() {
+        isHelpRunning = true;
         if($('#menu .open').length != 0){
             $('#menu').click();
         }

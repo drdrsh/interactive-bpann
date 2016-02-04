@@ -184,7 +184,14 @@ form p {
     color:white;
 }
 #tooltip ul, #tooltip h3, #tooltip div, #tooltip p{ margin: 0; text-align:center; }
-
+#tooltip ul {
+    list-style:none;
+    text-align:left;
+    padding:0;
+    background-color:navy;
+	border-radius:10px;
+	padding: 5px;
+}
 
 td.example-color {
     width:32px;
